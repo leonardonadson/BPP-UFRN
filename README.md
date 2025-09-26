@@ -55,10 +55,10 @@ python -m venv venv
 # Linux/macOS
 source venv/bin/activate
 # Windows
-# venv\Scripts\activate
+venv\Scripts\activate
 
 pip install -r requirements.txt
-uvicorn src.main:app --reload
+uvicorn app.main:app --reload
 ```
 
 *   API disponível em http://127.0.0.1:8000.
