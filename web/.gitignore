@@ -1,0 +1,26 @@
+# Banco de dados
+*.db
+*.sqlite
+*.sqlite3
+database.db
+studystreak.db
+
+# Cache do Vite/Node
+node_modules/
+.vite/
+dist/
+.env*
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
