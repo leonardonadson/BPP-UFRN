@@ -1,0 +1,148 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# FastAPI / Uvicorn
+*.log
+logs/
+
+# Virtual Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+studystreak.db
+test.db
+*.db-journal
+
+# Environment Variables (CRITICAL!)
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+*.env
+
+# IDE / Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Testing
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+htmlcov/
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+
+# Security & Secrets
+secrets/
+*.pem
+*.key
+*.crt
+*.p12
+config/local_settings.py
+
+# Deployment
+docker-compose.override.yml
+.dockerignore
+
+# Package managers
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Documentation builds
+docs/_build/
+site/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Local data
+uploads/
+media/
+static_collected/
