@@ -1,0 +1,158 @@
+# Log de Refatorações
+
+## Atualização #1: Centralização da Lógica de Negócio e Remoção de Duplicação
+- **Data**: 29/09/2025
+- **Code Smells Identificados**:
+    - **Código Duplicado (Duplicate Code)**: Nos endpoints `get_task`, `complete_task`, `delete_task`.
+    - **Método Longo / Múltiplas Responsabilidades (Long Method)**: O endpoint `complete_task` orquestrava a lógica de negócio.
+    - **Gerenciamento de Transação Ineficiente**: Múltiplos `db.commit()` eram chamados por diferentes serviços para uma única ação do usuário.
+- **Técnicas Aplicadas**:
+    - **Extrair Função (Extract Method)**: Criada uma dependência (`get_task_for_user_dependency`) para remover a duplicação de código.
+    - **Mover Método (Move Method)**: A lógica de orquestração de `complete_task` foi movida do `router` para uma nova função `process_task_completion` na camada de serviço (`score_service.py`).
+    - **Consolidar Transação**: Os `db.commit()` individuais foram removidos dos serviços e um único `commit` foi colocado ao final da função `process_task_completion`.
+- **Arquivos Afetados**:
+    - `api/app/routers/tasks.py`
+    - `api/app/services/score_service.py`
+    - `api/app/services/badge_service.py`
+
+---
+
+### Antes e Depois
+
+1. Endpoint complete_task (em routers/tasks.py)
+
+    ANTES:
+    
+        @router.patch("/{task_id}/complete", response_model=TaskResponse)
+        def complete_task(
+            task_id: int,
+            current_user: User = Depends(get_current_user),
+            db: Session = Depends(get_db)
+        ):
+            # Lógica de busca e validação DUPLICADA
+            task = db.query(TaskModel).filter(
+                TaskModel.id == task_id,
+                TaskModel.owner_id == current_user.id
+            ).first()
+            
+            if not task:
+                raise HTTPException(...)
+            
+            if task.is_completed:
+                raise HTTPException(...)
+            
+            # LÓGICA DE NEGÓCIO no router
+            task.is_completed = True
+            points_earned = award_points_for_task(current_user, task, db)
+            streak_updated = update_user_streak(current_user, db)
+            badges_earned = check_and_award_badges(current_user, db)
+            
+            db.commit() # Commit final no router
+            
+            return {
+                "task": task,
+                "points_earned": points_earned,
+                "streak_updated": streak_updated,
+                "badges_earned": badges_earned
+            }
+
+
+    DEPOIS:
+        
+        @router.patch("/{task_id}/complete", response_model=TaskResponse)
+        def complete_task(
+            task: TaskModel = Depends(get_task_for_user_dependency), # Duplicação removida
+            current_user: User = Depends(get_current_user),
+            db: Session = Depends(get_db)
+        ):
+            if task.is_completed:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Tarefa já foi concluída"
+                )
+            
+            # Lógica de negócio DELEGADA para a camada de serviço
+            completion_data = process_task_completion(current_user, task, db)
+            
+            return completion_data
+
+    
+2. Função de Serviço award_points_for_task (em services/score_service.py)
+
+    A principal mudança foi a remoção da chamada db.commit(), centralizando a responsabilidade da transação na nova função orquestradora process_task_completion.
+
+    ANTES:
+
+        def award_points_for_task(user: User, task: Task, db: Session) -> int:
+        """Calcula e atribui pontos pela conclusão de uma tarefa"""
+        on_time = task.due_date is None or datetime.now() <= task.due_date
+        points = calculate_task_points(task.weight, on_time)
+        
+        user.total_points += points
+        task.points_awarded = points
+        task.completed_at = datetime.now()
+        
+        db.commit()
+        return points
+    
+    
+    DEPOIS:
+
+        def award_points_for_task(user: User, task: Task, db: Session) -> int:
+        """Calcula e atribui pontos. O commit foi removido."""
+        on_time = task.due_date is None or datetime.now() <= task.due_date
+        points = calculate_task_points(task.weight, on_time)
+        
+        user.total_points += points
+        task.points_awarded = points
+        task.completed_at = datetime.now()
+        
+        # O db.commit() foi removido para ser centralizado.
+        return points
+
+
+3. Função de Serviço check_and_award_badges (em services/badge_service.py)
+    
+    Assim como no score_service, a chamada db.commit() foi removida para garantir uma transação atômica gerenciada pela função orquestradora.
+
+    ANTES:
+        
+        def check_and_award_badges(user: User, db: Session) -> List[Badge]:
+        """Verifica e concede badges baseadas nas conquistas do usuário"""
+        awarded_badges = []
+        # ... (lógica para verificar badges) ...
+
+        for badge in all_badges:
+            # ... (lógica para decidir se a badge deve ser concedida) ...
+            
+            if should_award:
+                user_badge = UserBadge(user_id=user.id, badge_id=badge.id)
+                db.add(user_badge)
+                awarded_badges.append(badge)
+        
+        if awarded_badges:
+            db.commit()
+        
+        return awarded_badges
+
+    
+    DEPOIS:
+
+        def check_and_award_badges(user: User, db: Session) -> List[Badge]:
+        """Verifica e concede badges baseadas nas conquistas do usuário"""
+        awarded_badges = []
+        # ... (lógica para verificar badges) ...
+
+        for badge in all_badges:
+            # ... (lógica para decidir se a badge deve ser concedida) ...
+            
+            if should_award:
+                user_badge = UserBadge(user_id=user.id, badge_id=badge.id)
+                db.add(user_badge)
+                awarded_badges.append(badge)
+        
+        # O db.commit() foi removido daqui para ser centralizado
+        # na função de serviço principal que orquestra a conclusão da tarefa.
+        
+        return awarded_badges
+
