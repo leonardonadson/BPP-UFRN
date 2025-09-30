@@ -1,5 +1,5 @@
 import React from 'react';
-import type { User } from '@/types/auth';
+import type { User } from '@/types/user'; 
 import type { Task } from '@/types/task';
 import { Trophy, Target, Flame, CheckCircle } from 'lucide-react';
 
@@ -9,20 +9,20 @@ interface UserStatsProps {
 }
 
 export const UserStats: React.FC<UserStatsProps> = ({ user, tasks }) => {
-  const completedTasks = tasks.filter(task => task.completed).length;
-  const pendingTasks = tasks.filter(task => !task.completed).length;
+  const completedTasks = tasks.filter(task => task.is_completed).length;
+  const pendingTasks = tasks.filter(task => !task.is_completed).length;
   const completionRate = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
 
   const stats = [
     {
       name: 'Pontos',
-      value: user?.points || 0,
+      value: user?.total_points || 0,
       icon: Trophy,
       color: 'text-yellow-600 bg-yellow-50',
     },
     {
       name: 'Streak',
-      value: `${user?.streak_days || 0} dias`,
+      value: `${user?.current_streak || 0} dias`,
       icon: Flame,
       color: 'text-orange-600 bg-orange-50',
     },

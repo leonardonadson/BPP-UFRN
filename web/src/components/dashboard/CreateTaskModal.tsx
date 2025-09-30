@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,7 +25,6 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   onClose, 
   onTaskCreated 
 }) => {
-  const [subjects, setSubjects] = useState<string[]>([]);
 
   const {
     register,
@@ -37,17 +36,6 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   });
 
   useEffect(() => {
-    const loadSubjects = async () => {
-      try {
-        const subjectsData = await taskService.getSubjects();
-        setSubjects(subjectsData);
-      } catch (error) {
-        console.error('Erro ao carregar disciplinas:', error);
-      }
-    };
-
-    loadSubjects();
-
     // Definir data/hora padrão como amanhã às 23:59
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -69,109 +57,125 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     }
   };
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4 z-50 overflow-y-auto"
+      onClick={handleOverlayClick}
+      aria-modal="true"
+      role="dialog"
+    >
+      <div 
+        className="bg-white rounded-xl shadow-2xl max-w-lg w-full"
+      >
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Nova Tarefa</h2>
+          <h2 className="text-xl font-bold text-gray-900">Nova Tarefa</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 p-1 transition duration-150 rounded-full hover:bg-gray-100"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+          {/* Título */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
               Título *
             </label>
             <input
               {...register('title')}
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Ex: Estudar para prova de Matemática"
             />
             {errors.title && (
-              <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+              <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>
             )}
           </div>
 
+          {/* Descrição */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
               Descrição
             </label>
             <textarea
               {...register('description')}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               placeholder="Detalhes adicionais sobre a tarefa..."
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Disciplina *
-            </label>
-            <select
-              {...register('subject')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">Selecione uma disciplina</option>
-              {subjects.map((subject) => (
-                <option key={subject} value={subject}>
-                  {subject}
-                </option>
-              ))}
-            </select>
-            {errors.subject && (
-              <p className="mt-1 text-sm text-red-600">{errors.subject.message}</p>
-            )}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Disciplina */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Disciplina *
+              </label>
+              <input
+                {...register('subject')}
+                type="text" 
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ex: Cálculo I, História, etc."
+              />
+              {errors.subject && (
+                <p className="mt-1 text-xs text-red-600">{errors.subject.message}</p>
+              )}
+            </div>
+
+            {/* Peso */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Peso (1-10) *
+              </label>
+              <input
+                {...register('weight', { valueAsNumber: true })}
+                type="number"
+                min="1"
+                max="10"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              {errors.weight && (
+                <p className="mt-1 text-xs text-red-600">{errors.weight.message}</p>
+              )}
+            </div>
           </div>
 
+          {/* Data e Hora */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Peso (1-10) *
-            </label>
-            <input
-              {...register('weight', { valueAsNumber: true })}
-              type="number"
-              min="1"
-              max="10"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-            {errors.weight && (
-              <p className="mt-1 text-sm text-red-600">{errors.weight.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
               Data e Hora de Entrega *
             </label>
             <input
               {...register('due_date')}
               type="datetime-local"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             {errors.due_date && (
-              <p className="mt-1 text-sm text-red-600">{errors.due_date.message}</p>
+              <p className="mt-1 text-xs text-red-600">{errors.due_date.message}</p>
             )}
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          {/* Botões */}
+          <div className="flex justify-end space-x-3 pt-4 border-t mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-6 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-150"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 disabled:opacity-50"
+              className="px-6 py-2 text-sm font-bold text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 disabled:opacity-50 transition duration-150 shadow-md"
             >
               {isSubmitting ? 'Criando...' : 'Criar Tarefa'}
             </button>

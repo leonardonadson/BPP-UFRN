@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from .database import engine, get_db
 from .models import Base
 from .routers import auth, tasks, users
 from .services.badge_service import initialize_badges
 
-# Criar tabelas no banco de dados
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -14,20 +14,30 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Incluir routers
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(users.router)
 
 @app.on_event("startup")
 def startup_event():
-    """Inicializa dados padrão na startup"""
     db = next(get_db())
     initialize_badges(db)
 
 @app.get("/")
 def read_root():
-    """Endpoint raiz da API"""
     return {
         "message": "StudyStreak API",
         "version": "1.0.0",
@@ -37,5 +47,4 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    """Endpoint para verificação de saúde da API"""
     return {"status": "healthy", "message": "API está funcionando corretamente"}

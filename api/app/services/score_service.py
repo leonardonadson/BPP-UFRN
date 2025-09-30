@@ -1,4 +1,4 @@
-# Conteúdo para: api/app/services/score_service.py (Versão 2)
+# Conteúdo para: api/app/services/score_service.py (Versão 2 - CORRIGIDO)
 
 from datetime import datetime, date
 from sqlalchemy.orm import Session
@@ -18,20 +18,28 @@ def update_user_streak(user: User, db: Session) -> bool:
     last_activity = user.last_activity_date.date() if user.last_activity_date else None
     
     streak_incremented = False
+    
+    # Se não houver atividade prévia, inicia o streak.
     if last_activity is None:
         user.current_streak = 1
         streak_incremented = True
-    elif last_activity == today:
-        return False 
+    # Se a última atividade foi ontem, incrementa o streak.
     elif (today - last_activity).days == 1:
         user.current_streak += 1
         streak_incremented = True
+    # Se a última atividade foi hoje, não incrementa o streak.
+    elif last_activity == today:
+        # A data de última atividade será atualizada no final,
+        # então não é necessário fazer nada aqui.
+        pass
+    # Se a última atividade foi há mais de um dia, zera o streak e reinicia.
     else:
         user.current_streak = 1
         streak_incremented = True
-        
-    if streak_incremented:
-        user.last_activity_date = datetime.now()
+    
+    # A data da última atividade é sempre atualizada.
+    # Isso garante que a verificação do dia seguinte funcione corretamente.
+    user.last_activity_date = datetime.now()
     
     # REATORAÇÃO: O db.commit() foi removido daqui
     return streak_incremented
