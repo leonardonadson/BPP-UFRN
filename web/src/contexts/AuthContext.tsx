@@ -56,10 +56,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      if (authService.isAuthenticated()) {
-        await refreshUser();
+      try {
+        if (authService.isAuthenticated()) {
+          await refreshUser();
+        }
+      } catch (error) {
+        console.error("Falha na inicialização do Auth:", error);
+        logout();
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     initAuth();
