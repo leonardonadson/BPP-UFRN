@@ -1,9 +1,7 @@
-# Conteúdo para: api/app/services/score_service.py (Versão 2 - CORRIGIDO)
-
 from datetime import datetime, date
 from sqlalchemy.orm import Session
 from ..models import User, Task
-from .badge_service import check_and_award_badges # Importar o serviço de badges
+from .badge_service import check_and_award_badges
 
 def calculate_task_points(weight: int, completed_on_time: bool = True) -> int:
     base_points = weight * 10
@@ -27,11 +25,12 @@ def update_user_streak(user: User, db: Session) -> bool:
     elif (today - last_activity).days == 1:
         user.current_streak += 1
         streak_incremented = True
-    # Se a última atividade foi hoje, não incrementa o streak.
+    # Se a última atividade foi hoje, não incrementa o streak, a menos que seja o primeiro do dia.
     elif last_activity == today:
-        # A data de última atividade será atualizada no final,
-        # então não é necessário fazer nada aqui.
-        pass
+        # Garante que um novo usuário ganhe streak no mesmo dia do cadastro.
+        if user.current_streak == 0:
+            user.current_streak = 1
+            streak_incremented = True
     # Se a última atividade foi há mais de um dia, zera o streak e reinicia.
     else:
         user.current_streak = 1
