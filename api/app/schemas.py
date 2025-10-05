@@ -2,7 +2,6 @@ from pydantic import BaseModel, EmailStr, validator
 from datetime import datetime
 from typing import Optional, List
 
-# User schemas
 class UserBase(BaseModel):
     email: EmailStr
     username: str
@@ -12,7 +11,6 @@ class UserCreate(UserBase):
     
     @validator('password')
     def password_length_validator(cls, v):
-        # Verifica se a senha não ultrapassa 72 bytes (limite do bcrypt)
         if len(v.encode('utf-8')) > 72:
             raise ValueError('A senha não pode ter mais de 72 bytes')
         if len(v) < 6:
@@ -37,7 +35,16 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
-# Task schemas
+
+# REATORAÇÃO: Nova classe para agrupar os parâmetros de filtro de tarefas.
+# Isto resolve o code smell "Long Parameter List" no router.
+
+class TaskFilterParams(BaseModel):
+    skip: int = 0
+    limit: int = 100
+    subject: Optional[str] = None
+    completed: Optional[bool] = None
+
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
@@ -87,7 +94,6 @@ class Task(TaskBase):
     class Config:
         from_attributes = True
 
-# Badge schemas
 class BadgeBase(BaseModel):
     name: str
     description: str
@@ -108,7 +114,6 @@ class UserBadge(BaseModel):
     class Config:
         from_attributes = True
 
-# Auth schemas
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -121,12 +126,10 @@ class UserLogin(BaseModel):
     def password_validator(cls, v):
         if len(v) < 1:
             raise ValueError('A senha é obrigatória')
-        # Mesma validação de 72 bytes para login
         if len(v.encode('utf-8')) > 72:
             raise ValueError('A senha não pode ter mais de 72 bytes')
         return v
 
-# Response schemas
 class TaskResponse(BaseModel):
     task: Task
     points_earned: int
@@ -138,7 +141,6 @@ class UserDashboard(BaseModel):
     tasks: List[Task]
     badges: List[UserBadge]
 
-# Statistics schemas
 class UserStats(BaseModel):
     total_tasks: int
     completed_tasks: int
@@ -157,12 +159,10 @@ class TasksBySubject(BaseModel):
     completed_tasks: int
     total_points: int
 
-# Success responses
 class MessageResponse(BaseModel):
     message: str
     success: bool = True
-
-# Error responses  
+ 
 class ErrorResponse(BaseModel):
     detail: str
     error: bool = True

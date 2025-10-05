@@ -172,71 +172,130 @@
 
 ### Antes e Depois
 
-#### Função `register_user` (em `routers/auth.py`)
+1. Função `register_user` (em `routers/auth.py`)
 
-ANTES:
+    ANTES:
 
-    @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
-    def register_user(user: UserCreate, db: Session = Depends(get_db)):
-        """Registra um novo usuário"""
-        # Validação e criação misturadas
-        if db.query(UserModel).filter(UserModel.email == user.email).first():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email já cadastrado"
+        @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
+        def register_user(user: UserCreate, db: Session = Depends(get_db)):
+            """Registra um novo usuário"""
+            # Validação e criação misturadas
+            if db.query(UserModel).filter(UserModel.email == user.email).first():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email já cadastrado"
+                )
+            
+            if db.query(UserModel).filter(UserModel.username == user.username).first():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Nome de usuário já existe"
+                )
+            
+            hashed_password = get_password_hash(user.password)
+            db_user = UserModel(
+                email=user.email,
+                username=user.username,
+                hashed_password=hashed_password
             )
-        
-        if db.query(UserModel).filter(UserModel.username == user.username).first():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Nome de usuário já existe"
-            )
-        
-        hashed_password = get_password_hash(user.password)
-        db_user = UserModel(
-            email=user.email,
-            username=user.username,
-            hashed_password=hashed_password
-        )
-        
-        db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
-        
-        return db_user
+            
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
+            
+            return db_user
 
-DEPOIS:
+    DEPOIS:
 
-    def _validate_user_creation(user_data: UserCreate, db: Session):
-        """Verifica se o email e o username já estão em uso."""
-        if db.query(UserModel).filter(UserModel.email == user_data.email).first():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email já cadastrado"
-            )
-        
-        if db.query(UserModel).filter(UserModel.username == user_data.username).first():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Nome de usuário já existe"
-            )
+        def _validate_user_creation(user_data: UserCreate, db: Session):
+            """Verifica se o email e o username já estão em uso."""
+            if db.query(UserModel).filter(UserModel.email == user_data.email).first():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email já cadastrado"
+                )
+            
+            if db.query(UserModel).filter(UserModel.username == user_data.username).first():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Nome de usuário já existe"
+                )
 
-    @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
-    def register_user(user: UserCreate, db: Session = Depends(get_db)):
-        """Registra um novo usuário após validar os dados."""
-        # Passo 1: Validação (agora em uma chamada de função clara)
-        _validate_user_creation(user, db)
-        
-        # Passo 2: Criação (a responsabilidade principal da função)
-        hashed_password = get_password_hash(user.password)
-        db_user = UserModel(
-            email=user.email,
-            username=user.username,
-            hashed_password=hashed_password
-        )
-        
-        db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
-        
-        return db_user
+        @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
+        def register_user(user: UserCreate, db: Session = Depends(get_db)):
+            """Registra um novo usuário após validar os dados."""
+            # Passo 1: Validação (agora em uma chamada de função clara)
+            _validate_user_creation(user, db)
+            
+            # Passo 2: Criação (a responsabilidade principal da função)
+            hashed_password = get_password_hash(user.password)
+            db_user = UserModel(
+                email=user.email,
+                username=user.username,
+                hashed_password=hashed_password
+            )
+            
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
+            
+            return db_user
+
+
+    ---
+
+## Atualização #3: Melhoria da Legibilidade com Objeto de Parâmetro
+- **Data**: 05 de outubro de 2025
+- **Code Smells Identificados**:
+    - **Lista de Parâmetros Longa (Long Parameter List)**: A função `list_tasks` recebia múltiplos parâmetros para filtros, tornando a sua assinatura poluída e difícil de estender.
+- **Técnica Aplicada**:
+    - **Introduzir Objeto de Parâmetro (Introduce Parameter Object)**: Os parâmetros de filtro (`skip`, `limit`, `subject`, `completed`) foram agrupados numa nova classe Pydantic, `TaskFilterParams`.
+- **Ficheiros Afetados**:
+    - `api/app/routers/tasks.py`
+    - `api/app/schemas.py`
+
+---
+
+### Antes e Depois
+
+1. Ficheiro 'schemas.py'
+
+    ANTES:
+
+        O ficheiro não tinha uma estrutura dedicada para os filtros da listagem de tarefas.
+
+
+    DEPOIS:
+
+        Uma nova classe `TaskFilterParams` foi adicionada:
+        ```python
+        class TaskFilterParams(BaseModel):
+            skip: int = 0
+            limit: int = 100
+            subject: Optional[str] = None
+            completed: Optional[bool] = None
+
+
+2. Função list_tasks (em routers/tasks.py)
+    
+    ANTES:
+
+        def list_tasks(
+            skip: int = 0,
+            limit: int = 100,
+            subject: Optional[str] = Query(None, description="Filtrar por disciplina"),
+            completed: Optional[bool] = Query(None, description="Filtrar por status de conclusão"),
+            current_user: User = Depends(get_current_user),
+            db: Session = Depends(get_db)
+        ):
+        # ...
+
+    
+    DEPOIS:
+
+        def list_tasks(
+            filters: TaskFilterParams = Depends(), # Assinatura muito mais limpa
+            current_user: User = Depends(get_current_user),
+            db: Session = Depends(get_db)
+        ):
+        # ...
