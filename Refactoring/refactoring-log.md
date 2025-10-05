@@ -156,3 +156,87 @@
         
         return awarded_badges
 
+
+        ---
+
+## Atualização #2: Separação de Responsabilidades no Registo de Utilizador
+- **Data**: 04/10/2025
+- **Code Smells Identificados**:
+    - **Método Longo / Múltiplas Responsabilidades (Long Method)**: A função `register_user` era responsável por validar a existência de dados no banco e também por criar o novo registo.
+- **Técnica Aplicada**:
+    - **Extrair Função (Extract Method)**: A lógica de validação foi movida para uma função interna e dedicada, `_validate_user_creation`.
+- **Ficheiros Afetados**:
+    - `api/app/routers/auth.py`
+
+---
+
+### Antes e Depois
+
+#### Função `register_user` (em `routers/auth.py`)
+
+ANTES:
+
+    @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
+    def register_user(user: UserCreate, db: Session = Depends(get_db)):
+        """Registra um novo usuário"""
+        # Validação e criação misturadas
+        if db.query(UserModel).filter(UserModel.email == user.email).first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email já cadastrado"
+            )
+        
+        if db.query(UserModel).filter(UserModel.username == user.username).first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Nome de usuário já existe"
+            )
+        
+        hashed_password = get_password_hash(user.password)
+        db_user = UserModel(
+            email=user.email,
+            username=user.username,
+            hashed_password=hashed_password
+        )
+        
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        
+        return db_user
+
+DEPOIS:
+
+    def _validate_user_creation(user_data: UserCreate, db: Session):
+        """Verifica se o email e o username já estão em uso."""
+        if db.query(UserModel).filter(UserModel.email == user_data.email).first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email já cadastrado"
+            )
+        
+        if db.query(UserModel).filter(UserModel.username == user_data.username).first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Nome de usuário já existe"
+            )
+
+    @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
+    def register_user(user: UserCreate, db: Session = Depends(get_db)):
+        """Registra um novo usuário após validar os dados."""
+        # Passo 1: Validação (agora em uma chamada de função clara)
+        _validate_user_creation(user, db)
+        
+        # Passo 2: Criação (a responsabilidade principal da função)
+        hashed_password = get_password_hash(user.password)
+        db_user = UserModel(
+            email=user.email,
+            username=user.username,
+            hashed_password=hashed_password
+        )
+        
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        
+        return db_user

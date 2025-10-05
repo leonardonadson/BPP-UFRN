@@ -1,18 +1,31 @@
 import os
-from pydantic_settings import BaseSettings
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-class Settings(BaseSettings):
-    DATABASE_URL: str 
+# CONFIGURAÇÃO DE AMBIENTE (QA vs Produção)
 
-    class Config:
-        env_file = ".env"
+# MODO 1: AMBIENTE DE TESTES / QA (Local)
+# SQLALCHEMY_DATABASE_URL = "sqlite:///./studystreak.db"
+# ==============================================================================
 
-settings = Settings()
+# MODO 2: AMBIENTE DE PRODUÇÃO (Remoto)
+ from pydantic_settings import BaseSettings
 
-engine = create_engine(settings.DATABASE_URL)
+ class Settings(BaseSettings):
+     DATABASE_URL: str
+
+     class Config:
+         env_file = ".env"
+
+ settings = Settings()
+ SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+# ==============================================================================
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False} if "sqlite" in SQLALCHEMY_DATABASE_URL else {}
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
