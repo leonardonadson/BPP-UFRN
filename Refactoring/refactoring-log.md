@@ -251,9 +251,9 @@
 
     JUSTIFICATIVA E IMPACTO:
             
-        A separação da lógica de validação da lógica de criação torna a função register_user mais limpa, mais curta e mais fácil de entender. 
-        Cada função agora tem uma responsabilidade única e bem definida, o que melhora a legibilidade, facilita a manutenção e abre caminho 
-        para testes unitários mais focados no futuro.
+        A separação da lógica de validação da lógica de criação torna a função register_user mais limpa, mais curta e mais fácil de 
+        entender. Cada função agora tem uma responsabilidade única e bem definida, o que melhora a legibilidade, facilita a manutenção e 
+        abre caminho para testes unitários mais focados no futuro.
 
 
 ## Atualização #3: Melhoria da Legibilidade com Objeto de Parâmetro
