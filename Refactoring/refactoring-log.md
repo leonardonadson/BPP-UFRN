@@ -159,7 +159,10 @@
 
     JUSTIFICATIVA E IMPACTO:
         
-        Esta refatoração substancial melhora significativamente a arquitetura da aplicação. Mover a lógica de negócio para a camada de serviços e remover a duplicação de código torna os routers mais limpos e focados (agindo como verdadeiros controladores). Centralizar a transação do banco de dados em uma única chamada commit torna a operação de completar uma tarefa atômica, mais segura e mais eficiente. A manutenibilidade e a testabilidade do código foram drasticamente aprimoradas.
+        Esta refatoração substancial melhora significativamente a arquitetura da aplicação. Mover a lógica de negócio para a camada de 
+        serviços e remover a duplicação de código torna os routers mais limpos e focados (agindo como verdadeiros controladores). 
+        Centralizar a transação do banco de dados em uma única chamada commit torna a operação de completar uma tarefa atômica, 
+        mais segura e mais eficiente. A manutenibilidade e a testabilidade do código foram drasticamente aprimoradas.
 
     
 
@@ -248,7 +251,9 @@
 
     JUSTIFICATIVA E IMPACTO:
             
-        A separação da lógica de validação da lógica de criação torna a função register_user mais limpa, mais curta e mais fácil de entender. Cada função agora tem uma responsabilidade única e bem definida, o que melhora a legibilidade, facilita a manutenção e abre caminho para testes unitários mais focados no futuro.
+        A separação da lógica de validação da lógica de criação torna a função register_user mais limpa, mais curta e mais fácil de entender. 
+        Cada função agora tem uma responsabilidade única e bem definida, o que melhora a legibilidade, facilita a manutenção e abre caminho 
+        para testes unitários mais focados no futuro.
 
 
 ## Atualização #3: Melhoria da Legibilidade com Objeto de Parâmetro
@@ -310,6 +315,11 @@
 
     JUSTIFICATIVA E IMPACTO:
         
-        Esta refatoração melhora drasticamente a legibilidade e a manutenibilidade da função list_tasks. Ao agrupar os múltiplos parâmetros de filtro (skip, limit, subject, completed) num único objeto coeso (TaskFilterParams), a assinatura da função torna-se mais limpa e a sua intenção mais clara, aderindo melhor aos princípios de código limpo.
+        Esta refatoração melhora drasticamente a legibilidade e a manutenibilidade da função list_tasks. Ao agrupar os múltiplos 
+        parâmetros de filtro (skip, limit, subject, completed) num único objeto coeso (TaskFilterParams), a assinatura da função 
+        torna-se mais limpa e a sua intenção mais clara, aderindo melhor aos princípios de código limpo.
 
-        O impacto mais significativo é na extensibilidade do código. Agora, para adicionar um novo filtro de pesquisa no futuro (por exemplo, filtrar por weight), basta adicionar um novo campo à classe TaskFilterParams no ficheiro schemas.py, sem a necessidade de alterar a assinatura da função list_tasks. Isto demonstra um design de software mais robusto, flexível e preparado para futuras evoluções da aplicação.
+        O impacto mais significativo é na extensibilidade do código. Agora, para adicionar um novo filtro de pesquisa no futuro 
+        (por exemplo, filtrar por weight), basta adicionar um novo campo à classe TaskFilterParams no ficheiro schemas.py, sem a 
+        necessidade de alterar a assinatura da função list_tasks. Isto demonstra um design de software mais robusto, flexível e 
+        preparado para futuras evoluções da aplicação.
