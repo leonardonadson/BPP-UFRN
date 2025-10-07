@@ -11,16 +11,16 @@ from sqlalchemy.orm import sessionmaker
 
 
 # MODO 2: AMBIENTE DE PRODUÇÃO (Remoto)
- from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings
 
- class Settings(BaseSettings):
-     DATABASE_URL: str
+class Settings(BaseSettings):
+    DATABASE_URL: str
 
-     class Config:
-         env_file = ".env"
+    class Config:
+        env_file = ".env"
 
- settings = Settings()
- SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+settings = Settings()
+SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 # ==============================================================================
 
 
