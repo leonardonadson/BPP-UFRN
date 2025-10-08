@@ -1,29 +1,23 @@
 """Módulo de configuração da base de dados e gestão de sessões."""
-from pydantic_settings import BaseSettings
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
-# ... (o resto do ficheiro, que já estava correto, permanece igual) ...
-
-# CONFIGURAÇÃO DE AMBIENTE (QA vs Produção)
 
 # MODO 1: AMBIENTE DE TESTES / QA (Local)
 SQLALCHEMY_DATABASE_URL = "sqlite:///./studystreak.db"
 # ==============================================================================
 
-
 # MODO 2: AMBIENTE DE PRODUÇÃO (Remoto)
-#from pydantic_settings import BaseSettings
+# from pydantic_settings import BaseSettings
 #
-#class Settings(BaseSettings):
-#    DATABASE_URL: str
+# class Settings(BaseSettings):
+#     DATABASE_URL: str
 #
-#    class Config:
-#        env_file = ".env"
+#     class Config:
+#         env_file = ".env"
 #
-#settings = Settings()
-#SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+# settings = Settings()
+# SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 # ==============================================================================
 
 

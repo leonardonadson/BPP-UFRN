@@ -2,12 +2,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# LIMPEZA: Ordem de importação corrigida e remoção de imports não utilizados
-from .database import engine
+from .database import engine, get_db
 from .models import Base
 from .routers import auth, tasks, users
 from .services.badge_service import initialize_badges
-from .database import get_db
 
 Base.metadata.create_all(bind=engine)
 
@@ -17,7 +15,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# LIMPEZA: Adicionada a origem do Vite para desenvolvimento local
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",

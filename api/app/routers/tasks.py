@@ -1,17 +1,15 @@
-# LIMPEZA: Ordem de importação e remoção de imports não utilizados
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..auth.auth_bearer import get_current_user
-from ..database import get_db
-from ..models import Task as TaskModel
-from ..models import User
-from ..schemas import Task, TaskCreate, TaskFilterParams, TaskResponse
-from ..services.score_service import process_task_completion
-
-# ... (o resto do ficheiro permanece igual, apenas com a formatação corrigida) ...
+# CORREÇÃO: Importações alteradas para absolutas
+from app.auth.auth_bearer import get_current_user
+from app.database import get_db
+from app.models import Task as TaskModel
+from app.models import User
+from app.schemas import Task, TaskCreate, TaskFilterParams, TaskResponse
+from app.services.score_service import process_task_completion
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -20,11 +18,12 @@ def get_task_for_user_dependency(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> TaskModel:
+    """Dependência para buscar uma tarefa específica do usuário logado."""
     task = db.query(TaskModel).filter(
         TaskModel.id == task_id,
         TaskModel.owner_id == current_user.id
     ).first()
-    
+
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -43,39 +42,32 @@ def create_task(
         **task.dict(),
         owner_id=current_user.id
     )
-    
+
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
-    
+
     return db_task
 
-# ==============================================================================
-# REATORAÇÃO: A assinatura da função agora é muito mais limpa, recebendo
-# um único objeto 'filters' que agrupa todos os parâmetros da query.
-# ==============================================================================
 @router.get("/", response_model=List[Task])
 def list_tasks(
-    filters: TaskFilterParams = Depends(), # <-- Objeto de Parâmetro injetado
+    filters: TaskFilterParams = Depends(),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Lista as tarefas do usuário com filtros opcionais"""
     query = db.query(TaskModel).filter(TaskModel.owner_id == current_user.id)
-    
-    # A lógica interna agora usa os atributos do objeto 'filters'
+
     if filters.subject:
         query = query.filter(TaskModel.subject == filters.subject)
-    
+
     if filters.completed is not None:
         query = query.filter(TaskModel.is_completed == filters.completed)
-    
+
     query = query.order_by(TaskModel.due_date.asc(), TaskModel.weight.desc())
-    
+
     tasks = query.offset(filters.skip).limit(filters.limit).all()
     return tasks
-
-# ==============================================================================
 
 @router.get("/{task_id}", response_model=Task)
 def get_task(
@@ -96,9 +88,8 @@ def complete_task(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Tarefa já foi concluída"
         )
-    
+
     completion_data = process_task_completion(current_user, task, db)
-    
     return completion_data
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -115,10 +106,10 @@ def list_subjects(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Lista todas as disciplinas das tarefas do usuário"""
+    """Lista todas as disciplinas distintas das tarefas do usuário"""
     subjects = db.query(TaskModel.subject).filter(
         TaskModel.owner_id == current_user.id,
         TaskModel.subject.isnot(None)
     ).distinct().all()
-    
+
     return [subject[0] for subject in subjects]
