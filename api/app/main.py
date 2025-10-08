@@ -2,10 +2,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .database import engine, get_db
-from .models import Base
-from .routers import auth, tasks, users
-from .services.badge_service import initialize_badges
+from app.database import engine, get_db
+from app.models import Base
+from app.routers import auth, tasks, users
+from app.services.badge_service import initialize_badges
 
 Base.metadata.create_all(bind=engine)
 

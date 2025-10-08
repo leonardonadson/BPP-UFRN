@@ -48,7 +48,8 @@ def get_current_user(token: str = Depends(JWTBearer()), db: Session = Depends(ge
 
     user_id_str = payload.get("sub")
     if user_id_str is None:
-        raise HTTPException(status_code=403, detail="Token inválido: identificador de usuário ausente")
+        raise HTTPException(status_code=403, detail=
+        "Token inválido: identificador de usuário ausente")
 
     try:
         user_id = int(user_id_str)

@@ -1,12 +1,10 @@
-# NOVO: Seção [MAIN] para configurações gerais do Pylint
 [MAIN]
-# Adiciona o diretório atual (raiz do projeto) ao path do python.
-# Isso permite que o Pylint encontre o pacote 'app' corretamente.
-init-hook='import sys; sys.path.append(".")'
+# MUDANÇA CRÍTICA: Adiciona a pasta 'api' ao path de busca,
+# em vez do diretório raiz (".").
+init-hook='import sys; sys.path.append("api")'
 
 [MESSAGES CONTROL]
-# Desativa avisos que não são relevantes para classes Pydantic/SQLAlchemy
-# ou que são de baixa prioridade para o nosso foco atual.
+# Suas configurações existentes permanecem aqui
 disable=
     missing-module-docstring,
     missing-class-docstring,
