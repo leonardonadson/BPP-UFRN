@@ -1,6 +1,11 @@
+# Conteúdo para: api/app/auth_handler.py (MELHORADO)
+
 from jose import jwt
 from datetime import datetime, timedelta
 import bcrypt
+# Lembre-se que, para a versão de produção, estas variáveis devem
+# ser carregadas a partir de um ficheiro de configurações.
+# Por agora, mantemos como está, conforme a sua decisão.
 
 SECRET_KEY = "your-secret-key-here-change-in-production"
 ALGORITHM = "HS256"
@@ -9,28 +14,28 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica a senha usando bcrypt diretamente"""
     try:
-        # Truncar senha para 72 bytes se necessário
         password_bytes = plain_password.encode('utf-8')[:72]
-        # Converter hash string para bytes
         hashed_bytes = hashed_password.encode('utf-8')
         return bcrypt.checkpw(password_bytes, hashed_bytes)
-    except Exception as e:
+    # CORREÇÃO: Capturar exceções mais específicas em vez de 'Exception'
+    except (ValueError, TypeError) as e:
+        # No futuro, aqui seria um bom local para usar um logger em vez de print
         print(f"Erro na verificação de senha: {e}")
         return False
 
 def get_password_hash(password: str) -> str:
     """Gera hash da senha usando bcrypt diretamente"""
     try:
-        # Truncar senha para 72 bytes se necessário
         password_bytes = password.encode('utf-8')[:72]
-        # Gerar salt e hash
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(password_bytes, salt)
         return hashed.decode('utf-8')
-    except Exception as e:
+    # CORREÇÃO: Capturar exceções mais específicas em vez de 'Exception'
+    except (ValueError, TypeError) as e:
         print(f"Erro no hash da senha: {e}")
         raise
 
+# ... (o resto do ficheiro create_access_token e decode_jwt permanece igual)
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

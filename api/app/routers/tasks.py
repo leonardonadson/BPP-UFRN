@@ -1,15 +1,17 @@
-# Conteúdo para: api/app/routers/tasks.py (Versão 4)
+# LIMPEZA: Ordem de importação e remoção de imports não utilizados
+from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import datetime
-from ..database import get_db
-# REATORAÇÃO: Importar a nova classe de filtros
-from ..schemas import TaskCreate, Task, TaskResponse, TaskFilterParams
-from ..models import Task as TaskModel, User
+
 from ..auth.auth_bearer import get_current_user
-from ..services.score_service import process_task_completion 
+from ..database import get_db
+from ..models import Task as TaskModel
+from ..models import User
+from ..schemas import Task, TaskCreate, TaskFilterParams, TaskResponse
+from ..services.score_service import process_task_completion
+
+# ... (o resto do ficheiro permanece igual, apenas com a formatação corrigida) ...
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 

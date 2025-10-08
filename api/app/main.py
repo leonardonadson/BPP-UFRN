@@ -1,10 +1,13 @@
-from fastapi import FastAPI, Depends
+"""Módulo principal da aplicação FastAPI."""
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from .database import engine, get_db
+
+# LIMPEZA: Ordem de importação corrigida e remoção de imports não utilizados
+from .database import engine
 from .models import Base
 from .routers import auth, tasks, users
 from .services.badge_service import initialize_badges
+from .database import get_db
 
 Base.metadata.create_all(bind=engine)
 
@@ -14,7 +17,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# LIMPEZA: Adicionada a origem do Vite para desenvolvimento local
 origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://studystreak-ufrn.vercel.app",
@@ -34,11 +40,13 @@ app.include_router(users.router)
 
 @app.on_event("startup")
 def startup_event():
+    """Inicializa dados padrão na startup, como as badges."""
     db = next(get_db())
     initialize_badges(db)
 
 @app.get("/")
 def read_root():
+    """Endpoint raiz da API."""
     return {
         "message": "StudyStreak API",
         "version": "1.0.0",
@@ -48,4 +56,5 @@ def read_root():
 
 @app.get("/health")
 def health_check():
+    """Endpoint para verificação de saúde da API."""
     return {"status": "healthy", "message": "API está funcionando corretamente"}

@@ -1,3 +1,5 @@
+# Conteúdo para: api/app/models.py (CORRIGIDO)
+
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -12,8 +14,9 @@ class User(Base):
     hashed_password = Column(String)
     total_points = Column(Integer, default=0)
     current_streak = Column(Integer, default=0)
-    last_activity_date = Column(DateTime, default=func.now())
-    created_at = Column(DateTime, default=func.now())
+    # CORREÇÃO: Removidos os parênteses de func.now()
+    last_activity_date = Column(DateTime, default=func.now)
+    created_at = Column(DateTime, default=func.now)
 
     tasks = relationship("Task", back_populates="owner")
     badges = relationship("UserBadge", back_populates="user")
@@ -24,13 +27,14 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     description = Column(Text)
-    subject = Column(String)  # disciplina
-    weight = Column(Integer, default=1)  # peso da tarefa
+    subject = Column(String)
+    weight = Column(Integer, default=1)
     due_date = Column(DateTime)
     is_completed = Column(Boolean, default=False)
     completed_at = Column(DateTime)
     points_awarded = Column(Integer, default=0)
-    created_at = Column(DateTime, default=func.now())
+    # CORREÇÃO: Removidos os parênteses de func.now()
+    created_at = Column(DateTime, default=func.now)
     
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="tasks")
@@ -53,7 +57,8 @@ class UserBadge(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     badge_id = Column(Integer, ForeignKey("badges.id"))
-    earned_at = Column(DateTime, default=func.now())
+    # CORREÇÃO: Removidos os parênteses de func.now()
+    earned_at = Column(DateTime, default=func.now)
 
     user = relationship("User", back_populates="badges")
     badge = relationship("Badge", back_populates="user_badges")

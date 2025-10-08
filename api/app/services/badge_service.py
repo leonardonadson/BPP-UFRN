@@ -1,12 +1,16 @@
 # Conteúdo para: api/app/services/badge_service.py (Versão 2)
 
-from sqlalchemy.orm import Session
-from ..models import User, Badge, UserBadge, Task
 from typing import List
+
+from sqlalchemy.orm import Session
+from ..models import Badge, Task, User, UserBadge
 
 def initialize_badges(db: Session):
     default_badges = [
-        {"name": "Primeira Tarefa", "description": "Completou sua primeira tarefa", "icon": "🎯", "tasks_required": 1},
+        {
+            "name": "Primeira Tarefa", "description": "Completou sua primeira tarefa",
+            "icon": "🎯", "tasks_required": 1
+        },
         {"name": "Streak Iniciante", "description": "Manteve um streak de 3 dias", "icon": "🔥", "points_required": 0},
         {"name": "Estudioso", "description": "Completou 10 tarefas", "icon": "📚", "tasks_required": 10},
         {"name": "Dedicado", "description": "Acumulou 100 pontos", "icon": "⭐", "points_required": 100},
@@ -30,8 +34,7 @@ def check_and_award_badges(user: User, db: Session) -> List[Badge]:
     user_badge_ids = [ub.badge_id for ub in user.badges]
     
     completed_tasks = db.query(Task).filter(
-        Task.owner_id == user.id,
-        Task.is_completed == True
+        Task.owner_id == user.id, Task.is_completed is True
     ).count()
     
     for badge in all_badges:

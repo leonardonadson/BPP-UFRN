@@ -1,6 +1,8 @@
-from pydantic import BaseModel, EmailStr, validator
+"""Módulo de definição dos schemas de dados com Pydantic."""
+# LIMPEZA: Ordem de importação corrigida (bibliotecas padrão primeiro)
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
+from pydantic import BaseModel, EmailStr, validator
 
 class UserBase(BaseModel):
     email: EmailStr

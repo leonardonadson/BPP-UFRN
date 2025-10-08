@@ -1,0 +1,10 @@
+[MESSAGES CONTROL]
+# Desativa avisos que não são relevantes para classes Pydantic/SQLAlchemy
+# ou que são de baixa prioridade para o nosso foco atual.
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    no-self-argument,
+    singleton-comparison

@@ -1,14 +1,17 @@
-from datetime import datetime, date
+from datetime import date, datetime
+
 from sqlalchemy.orm import Session
-from ..models import User, Task
+
+from ..models import Task, User
 from .badge_service import check_and_award_badges
 
 def calculate_task_points(weight: int, completed_on_time: bool = True) -> int:
+    """Calcula os pontos de uma tarefa."""
     base_points = weight * 10
+    # LIMPEZA: Refatorado para remover 'else' desnecessário após 'return'
     if completed_on_time:
         return base_points
-    else:
-        return max(base_points // 2, 5)
+    return max(base_points // 2, 5)
 
 def update_user_streak(user: User, db: Session) -> bool:
     """Atualiza o streak do usuário. O commit foi removido."""
