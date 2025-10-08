@@ -52,8 +52,11 @@ def get_current_user(token: str = Depends(JWTBearer()), db: Session = Depends(ge
 
     try:
         user_id = int(user_id_str)
-    except (ValueError, TypeError):
-        raise HTTPException(status_code=403, detail="Token inválido: formato de identificador de usuário incorreto")
+    except (ValueError, TypeError) as exc:
+    raise HTTPException(
+        status_code=403,
+        detail='Token inválido: formato de identificador de usuário incorreto'
+    ) from exc
 
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:

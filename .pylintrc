@@ -1,3 +1,9 @@
+# NOVO: Seção [MAIN] para configurações gerais do Pylint
+[MAIN]
+# Adiciona o diretório atual (raiz do projeto) ao path do python.
+# Isso permite que o Pylint encontre o pacote 'app' corretamente.
+init-hook='import sys; sys.path.append(".")'
+
 [MESSAGES CONTROL]
 # Desativa avisos que não são relevantes para classes Pydantic/SQLAlchemy
 # ou que são de baixa prioridade para o nosso foco atual.

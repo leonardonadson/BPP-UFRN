@@ -20,7 +20,7 @@ def get_current_user_info(current_user: UserModel = Depends(get_current_user)):
 @router.get("/dashboard", response_model=UserDashboard)
 def get_user_dashboard(
     current_user: UserModel = Depends(get_current_user),
-    db: Session = Depends(get_db) # Mantido para consistência ou uso futuro
+    _db: Session = Depends(get_db) # Renomeado para _db
 ):
     """Retorna dashboard completo do usuário."""
     # Embora 'db' não seja usado diretamente aqui, as relações do SQLAlchemy
