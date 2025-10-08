@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+# 2. Importações de bibliotecas de terceiros (em ordem alfabética)
 import bcrypt
 from jose import jwt
 
