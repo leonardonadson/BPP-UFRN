@@ -22,7 +22,7 @@
 1. Endpoint complete_task (em routers/tasks.py)
 
     ANTES:
-    
+
         @router.patch("/{task_id}/complete", response_model=TaskResponse)
         def complete_task(
             task_id: int,
@@ -34,21 +34,21 @@
                 TaskModel.id == task_id,
                 TaskModel.owner_id == current_user.id
             ).first()
-            
+
             if not task:
                 raise HTTPException(...)
-            
+
             if task.is_completed:
                 raise HTTPException(...)
-            
+
             # LÓGICA DE NEGÓCIO no router
             task.is_completed = True
             points_earned = award_points_for_task(current_user, task, db)
             streak_updated = update_user_streak(current_user, db)
             badges_earned = check_and_award_badges(current_user, db)
-            
+
             db.commit() # Commit final no router
-            
+
             return {
                 "task": task,
                 "points_earned": points_earned,
@@ -58,7 +58,7 @@
 
 
     DEPOIS:
-        
+
         @router.patch("/{task_id}/complete", response_model=TaskResponse)
         def complete_task(
             task: TaskModel = Depends(get_task_for_user_dependency), # Duplicação removida
@@ -70,13 +70,13 @@
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Tarefa já foi concluída"
                 )
-            
+
             # Lógica de negócio DELEGADA para a camada de serviço
             completion_data = process_task_completion(current_user, task, db)
-            
+
             return completion_data
 
-    
+
 2. Função de Serviço award_points_for_task (em services/score_service.py)
 
     A principal mudança foi a remoção da chamada db.commit(), centralizando a responsabilidade da transação na nova função orquestradora process_task_completion.
@@ -87,36 +87,36 @@
         """Calcula e atribui pontos pela conclusão de uma tarefa"""
         on_time = task.due_date is None or datetime.now() <= task.due_date
         points = calculate_task_points(task.weight, on_time)
-        
+
         user.total_points += points
         task.points_awarded = points
         task.completed_at = datetime.now()
-        
+
         db.commit()
         return points
-    
-    
+
+
     DEPOIS:
 
         def award_points_for_task(user: User, task: Task, db: Session) -> int:
         """Calcula e atribui pontos. O commit foi removido."""
         on_time = task.due_date is None or datetime.now() <= task.due_date
         points = calculate_task_points(task.weight, on_time)
-        
+
         user.total_points += points
         task.points_awarded = points
         task.completed_at = datetime.now()
-        
+
         # O db.commit() foi removido para ser centralizado.
         return points
 
 
 3. Função de Serviço check_and_award_badges (em services/badge_service.py)
-    
+
     Assim como no score_service, a chamada db.commit() foi removida para garantir uma transação atômica gerenciada pela função orquestradora.
 
     ANTES:
-        
+
         def check_and_award_badges(user: User, db: Session) -> List[Badge]:
         """Verifica e concede badges baseadas nas conquistas do usuário"""
         awarded_badges = []
@@ -124,18 +124,18 @@
 
         for badge in all_badges:
             # ... (lógica para decidir se a badge deve ser concedida) ...
-            
+
             if should_award:
                 user_badge = UserBadge(user_id=user.id, badge_id=badge.id)
                 db.add(user_badge)
                 awarded_badges.append(badge)
-        
+
         if awarded_badges:
             db.commit()
-        
+
         return awarded_badges
 
-    
+
     DEPOIS:
 
         def check_and_award_badges(user: User, db: Session) -> List[Badge]:
@@ -145,26 +145,26 @@
 
         for badge in all_badges:
             # ... (lógica para decidir se a badge deve ser concedida) ...
-            
+
             if should_award:
                 user_badge = UserBadge(user_id=user.id, badge_id=badge.id)
                 db.add(user_badge)
                 awarded_badges.append(badge)
-        
+
         # O db.commit() foi removido daqui para ser centralizado
         # na função de serviço principal que orquestra a conclusão da tarefa.
-        
+
         return awarded_badges
 
 
     JUSTIFICATIVA E IMPACTO:
-        
-        Esta refatoração substancial melhora significativamente a arquitetura da aplicação. Mover a lógica de negócio para a camada de 
-        serviços e remover a duplicação de código torna os routers mais limpos e focados (agindo como verdadeiros controladores). 
-        Centralizar a transação do banco de dados em uma única chamada commit torna a operação de completar uma tarefa atômica, 
+
+        Esta refatoração substancial melhora significativamente a arquitetura da aplicação. Mover a lógica de negócio para a camada de
+        serviços e remover a duplicação de código torna os routers mais limpos e focados (agindo como verdadeiros controladores).
+        Centralizar a transação do banco de dados em uma única chamada commit torna a operação de completar uma tarefa atômica,
         mais segura e mais eficiente. A manutenibilidade e a testabilidade do código foram drasticamente aprimoradas.
 
-    
+
 
 ## Atualização #2: Separação de Responsabilidades no Registo de Utilizador
 - **Data**: 04/10/2025
@@ -192,24 +192,24 @@
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Email já cadastrado"
                 )
-            
+
             if db.query(UserModel).filter(UserModel.username == user.username).first():
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Nome de usuário já existe"
                 )
-            
+
             hashed_password = get_password_hash(user.password)
             db_user = UserModel(
                 email=user.email,
                 username=user.username,
                 hashed_password=hashed_password
             )
-            
+
             db.add(db_user)
             db.commit()
             db.refresh(db_user)
-            
+
             return db_user
 
     DEPOIS:
@@ -221,19 +221,19 @@
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Email já cadastrado"
                 )
-            
+
             if db.query(UserModel).filter(UserModel.username == user_data.username).first():
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Nome de usuário já existe"
                 )
-
+-
         @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
         def register_user(user: UserCreate, db: Session = Depends(get_db)):
             """Registra um novo usuário após validar os dados."""
             # Passo 1: Validação (agora em uma chamada de função clara)
             _validate_user_creation(user, db)
-            
+
             # Passo 2: Criação (a responsabilidade principal da função)
             hashed_password = get_password_hash(user.password)
             db_user = UserModel(
@@ -241,23 +241,23 @@
                 username=user.username,
                 hashed_password=hashed_password
             )
-            
+
             db.add(db_user)
             db.commit()
             db.refresh(db_user)
-            
-            return db_user
-        
 
-    JUSTIFICATIVA E IMPACTO:
-            
-        A separação da lógica de validação da lógica de criação torna a função register_user mais limpa, mais curta e mais fácil de 
-        entender. Cada função agora tem uma responsabilidade única e bem definida, o que melhora a legibilidade, facilita a manutenção e 
+            return db_user
+
+
+    # JUSTIFICATIVA E IMPACTO:
+
+        A separação da lógica de validação da lógica de criação torna a função register_user mais limpa, mais curta e mais fácil de
+        entender. Cada função agora tem uma responsabilidade única e bem definida, o que melhora a legibilidade, facilita a manutenção e
         abre caminho para testes unitários mais focados no futuro.
 
 
 ## Atualização #3: Melhoria da Legibilidade com Objeto de Parâmetro
-- **Data**: 05 de outubro de 2025
+ **Data**: 05 de outubro de 2025
 - **Code Smells Identificados**:
     - **Lista de Parâmetros Longa (Long Parameter List)**: A função `list_tasks` recebia múltiplos parâmetros para filtros, tornando a sua assinatura poluída e difícil de estender.
 - **Técnica Aplicada**:
@@ -289,7 +289,7 @@
 
 
 2. Função list_tasks (em routers/tasks.py)
-    
+
     ANTES:
 
         def list_tasks(
@@ -302,7 +302,7 @@
         ):
         # ...
 
-    
+
     DEPOIS:
 
         def list_tasks(
@@ -314,12 +314,132 @@
 
 
     JUSTIFICATIVA E IMPACTO:
-        
-        Esta refatoração melhora drasticamente a legibilidade e a manutenibilidade da função list_tasks. Ao agrupar os múltiplos 
-        parâmetros de filtro (skip, limit, subject, completed) num único objeto coeso (TaskFilterParams), a assinatura da função 
+
+        Esta refatoração melhora drasticamente a legibilidade e a manutenibilidade da função list_tasks. Ao agrupar os múltiplos
+        parâmetros de filtro (skip, limit, subject, completed) num único objeto coeso (TaskFilterParams), a assinatura da função
         torna-se mais limpa e a sua intenção mais clara, aderindo melhor aos princípios de código limpo.
 
-        O impacto mais significativo é na extensibilidade do código. Agora, para adicionar um novo filtro de pesquisa no futuro 
-        (por exemplo, filtrar por weight), basta adicionar um novo campo à classe TaskFilterParams no ficheiro schemas.py, sem a 
-        necessidade de alterar a assinatura da função list_tasks. Isto demonstra um design de software mais robusto, flexível e 
+        O impacto mais significativo é na extensibilidade do código. Agora, para adicionar um novo filtro de pesquisa no futuro
+        (por exemplo, filtrar por weight), basta adicionar um novo campo à classe TaskFilterParams no ficheiro schemas.py, sem a
+        necessidade de alterar a assinatura da função list_tasks. Isto demonstra um design de software mais robusto, flexível e
         preparado para futuras evoluções da aplicação.
+
+
+## Atualização #4: Limpeza Final e Polimento do Código (Pylint 10/10)
+ **Data**: 08 de outubro de 2025
+  **Code Smells Identificados**:
+
+        Código Morto (Unused Argument, Unused Import): Vários ficheiros continham parâmetros e importações
+        que não estavam a ser utilizados.
+
+        Pequenas Refatorações de Legibilidade (no-else-return, super-with-arguments): Oportunidades para
+         tornar o código mais limpo, moderno e direto.
+
+        Inconsistências de Formatação: Problemas de ordenação de importações, linhas demasiado longas
+        e espaçamento inconsistente.
+
+        Ambiguidade em Importações Relativas: O uso de importações relativas (from ..module) estava a
+        causar erros de linting e a dificultar a análise estática.
+
+  **Técnicas Aplicadas**:
+
+        Limpeza de Código (Code Cleanup): Remoção sistemática de todo o código não utilizado.
+
+        Padronização de Formatação: Aplicação de um estilo consistente em toda a base de código.
+
+        Refatoração para Importações Absolutas: Alteração de todas as importações relativas
+        para importações absolutas a partir da raiz do pacote (app), o que melhora a clareza e
+         a compatibilidade com ferramentas de análise.
+
+    Ficheiros Afetados: Praticamente todos os ficheiros .py da aplicação api/app.
+
+# Antes e Depois (Exemplos Representativos)
+
+1. Tratamento de Argumentos Não Utilizados (em routers/users.py)
+
+    Para resolver o aviso Unused argument 'db', o parâmetro foi renomeado para _db para sinalizar
+    intencionalmente que ele é necessário na assinatura da função (para a injeção de dependência),
+    mas não é utilizado no corpo da função.
+
+    ANTES:
+
+        def get_user_dashboard(
+            current_user: UserModel = Depends(get_current_user),
+            db: Session = Depends(get_db)
+        ):
+            # 'db' não é usado aqui, gerando um aviso no pylint.
+            tasks = current_user.tasks
+            badges = current_user.badges
+            return {"user": current_user, "tasks": tasks, "badges": badges}
+
+    DEPOIS:
+
+        def get_user_dashboard(
+            current_user: UserModel = Depends(get_current_user),
+            _db: Session = Depends(get_db) # Renomeado para _db
+        ):
+            # O aviso do pylint é resolvido, indicando que o não uso é intencional.
+            tasks = current_user.tasks
+            badges = current_user.badges
+            return {"user": current_user, "tasks": tasks, "badges": badges}
+
+
+2. Refatoração de Legibilidade (em auth_bearer.py)
+
+    O pylint sugeriu a remoção de um else desnecessário após um return, tornando o
+    fluxo do código mais linear e fácil de ler.
+
+    ANTES:
+
+        async def __call__(self, request: Request):
+            credentials: HTTPAuthorizationCredentials = await super().__call__(request)
+            if not credentials:
+                raise HTTPException(status_code=403, detail="Código de autorização inválido.")
+            else: # 'else' desnecessário
+                if not credentials.scheme == "Bearer":
+                    # ...
+
+    DEPOIS:
+
+        async def __call__(self, request: Request):
+            credentials: HTTPAuthorizationCredentials = await super().__call__(request)
+            if not credentials:
+                raise HTTPException(status_code=403, detail="Código de autorização inválido.")
+
+            # Fluxo de código mais limpo e direto
+            if not credentials.scheme == "Bearer":
+                # ...
+
+
+3. Padronização para Importações Absolutas (Exemplo em routers/tasks.py)
+
+    As importações relativas (from ..) foram substituídas por importações absolutas a partir da raiz
+    do pacote (from app.), o que resolveu os erros de linting e tornou a origem de cada módulo explícita.
+
+    ANTES:
+
+        from ..auth.auth_bearer import get_current_user
+        from ..database import get_db
+        from ..models import Task as TaskModel
+        from ..models import User
+        from ..schemas import Task, TaskCreate, TaskFilterParams, TaskResponse
+        from ..services.score_service import process_task_completion
+
+    DEPOIS:
+
+        from app.auth.auth_bearer import get_current_user
+        from app.database import get_db
+        from app.models import Task as TaskModel
+        from app.models import User
+        from app.schemas import Task, TaskCreate, TaskFilterParams, TaskResponse
+        from app.services.score_service import process_task_completion
+
+
+    JUSTIFICATIVA E IMPACTO
+
+    Esta fase final de polimento não alterou a lógica de negócio, mas foi crucial para elevar a qualidade
+    interna do código a um nível profissional. Ao corrigir sistematicamente todos os apontamentos de
+    uma ferramenta de análise estática como o pylint, garantimos que toda a base de código segue um padrão
+    consistente de estilo, formatação e boas práticas. A remoção de código morto e a melhoria da legibilidade
+    tornam o projeto mais fácil de manter e de dar continuidade no futuro. Atingir uma pontuação 10/10 no
+    pylint é um forte indicador de um código saudável, disciplinado e de alta qualidade.

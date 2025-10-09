@@ -7,7 +7,7 @@ Este documento cataloga os principais code smells identificados no código da AP
 Nesta fase, focámo-nos em centralizar a lógica de negócio que estava espalhada e duplicada no router de tarefas.
 
 
-# 1. Código Duplicado (Duplicate Code)
+**1. Código Duplicado (Duplicate Code)**
 
 Ficheiro(s) Afetado(s): api/app/routers/tasks.py
 
@@ -17,7 +17,7 @@ Status: Corrigido na Atualização #1.
 
 Trecho de Código (em complete_task):
 
-    
+
     # Lógica de busca e validação DUPLICADA
     task = db.query(TaskModel).filter(
         TaskModel.id == task_id,
@@ -28,7 +28,7 @@ Trecho de Código (em complete_task):
         raise HTTPException(...)
 
 
-# 2. Método Longo / Múltiplas Responsabilidades (Long Method)
+**2. Método Longo / Múltiplas Responsabilidades (Long Method)**
 
 Ficheiro(s) Afetado(s): api/app/routers/tasks.py
 
@@ -45,19 +45,19 @@ Trecho de Código (em complete_task):
         db: Session = Depends(get_db)
     ):
         # ... (lógica de busca) ...
-            
+
         # LÓGICA DE NEGÓCIO no router
         task.is_completed = True
         points_earned = award_points_for_task(current_user, task, db)
         streak_updated = update_user_streak(current_user, db)
         badges_earned = check_and_award_badges(current_user, db)
-            
+
         db.commit() # Commit final no router
-            
+
         return { ... }
 
 
-# 3. Gerenciamento de Transação Ineficiente
+**3. Gerenciamento de Transação Ineficiente**
 
 Ficheiro(s) Afetado(s): api/app/services/score_service.py, api/app/services/badge_service.py
 
@@ -69,11 +69,11 @@ Trecho de Código (em award_points_for_task):
 
     def award_points_for_task(user: User, task: Task, db: Session) -> int:
         # ... (lógica de atribuição de pontos) ...
-            
+
         user.total_points += points
         task.points_awarded = points
         task.completed_at = datetime.now()
-            
+
         db.commit() # Commit individual e ineficiente
         return points
 
@@ -83,7 +83,8 @@ Trecho de Código (em award_points_for_task):
 Nesta atualização, o foco foi melhorar a clareza e a separação de responsabilidades no fluxo de autenticação.
 
 
-# 4. Método Longo / Múltiplas Responsabilidades (Long Method)
+**4. Método Longo / Múltiplas Responsabilidades (Long Method)**
+
 Ficheiro(s) Afetado(s): api/app/routers/auth.py
 
 Descrição: A função register_user era responsável por duas tarefas distintas: validar se o email e o nome de utilizador já existiam (lógica de negócio) e criar o novo registo no banco de dados (ação).
@@ -97,10 +98,10 @@ Trecho de Código:
         # Validação e criação misturadas
         if db.query(UserModel).filter(UserModel.email == user.email).first():
             raise HTTPException(...)
-        
+
         if db.query(UserModel).filter(UserModel.username == user.username).first():
             raise HTTPException(...)
-        
+
         hashed_password = get_password_hash(user.password)
         # ... (criação do utilizador) ...
 
@@ -109,7 +110,8 @@ Trecho de Código:
 
 A última refatoração focou-se em tornar o código mais legível e, principalmente, mais fácil de estender no futuro.
 
-# 5. Lista de Parâmetros Longa (Long Parameter List)
+**5. Lista de Parâmetros Longa (Long Parameter List)**
+
 Ficheiro(s) Afetado(s): api/app/routers/tasks.py
 
 Descrição: A função list_tasks recebia múltiplos parâmetros para filtros e paginação (skip, limit, subject, completed). Isto tornava a assinatura da função longa, menos legível e difícil de manter ou estender com novos filtros.
@@ -127,3 +129,55 @@ Trecho de Código:
         db: Session = Depends(get_db)
     ):
         # ...
+
+# Identificados na Atualização #4 (Limpeza Final)
+Nesta fase, o objetivo foi realizar um polimento completo no código, corrigindo todos os apontamentos restantes da ferramenta de análise estática pylint para garantir a máxima qualidade e consistência.
+
+**6. Código Morto (Unused Code)**
+
+Ficheiro(s) Afetado(s): Vários ficheiros, incluindo routers/users.py e main.py.
+
+Descrição: A análise do pylint revelou a presença de várias importações e parâmetros de função que foram declarados mas nunca utilizados no código. Este "código morto" polui a base de código, dificulta a leitura e a manutenção.
+
+Status: Corrigido na Atualização #4.
+
+Trecho de Código (em routers/users.py):
+
+    def get_user_dashboard(
+        current_user: UserModel = Depends(get_current_user),
+        db: Session = Depends(get_db)
+    ):
+        tasks = current_user.tasks
+        badges = current_user.badges
+        return {"user": current_user, "tasks": tasks, "badges": badges}
+
+**7. Más Práticas de Legibilidade (Readability Bad Practices)**
+
+Ficheiro(s) Afetado(s): services/score_service.py, auth/auth_bearer.py.
+
+Descrição: Foram identificados padrões de código que, embora funcionais, poderiam ser escritos de forma mais clara e direta. Um exemplo notável é o uso de um bloco else após um return dentro de um if, o que é considerado redundante e prejudica a linearidade da leitura do código.
+
+Status: Corrigido na Atualização #4.
+
+Trecho de Código (em services/score_service.py):
+
+    def calculate_task_points(weight: int, completed_on_time: bool = True) -> int:
+        base_points = weight * 10
+        if completed_on_time:
+            return base_points
+        else:
+            return max(base_points // 2, 5)
+
+**8. Inconsistência na Ordem de Importações (Inconsistent Import Order)**
+
+Ficheiro(s) Afetado(s): Vários ficheiros, incluindo schemas.py, auth_handler.py, routers/tasks.py.
+
+Descrição: As importações em vários ficheiros não seguiam a convenção padrão do Python (PEP 8), que recomenda agrupar as importações na seguinte ordem: bibliotecas padrão, bibliotecas de terceiros e, por último, importações locais da aplicação. Esta inconsistência prejudica a organização e a legibilidade do código.
+
+Status: Corrigido na Atualização #4.
+
+Trecho de Código (em schemas.py):
+
+    from pydantic import BaseModel, EmailStr, validator
+    from datetime import datetime
+    from typing import Optional, List

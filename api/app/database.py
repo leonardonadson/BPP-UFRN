@@ -4,20 +4,20 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # MODO 1: AMBIENTE DE TESTES / QA (Local)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./studystreak.db"
+#SQLALCHEMY_DATABASE_URL = "sqlite:///./studystreak.db"
 # ==============================================================================
 
-# MODO 2: AMBIENTE DE PRODUÇÃO (Remoto)
-# from pydantic_settings import BaseSettings
-#
-# class Settings(BaseSettings):
-#     DATABASE_URL: str
-#
-#     class Config:
-#         env_file = ".env"
-#
-# settings = Settings()
-# SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+ MODO 2: AMBIENTE DE PRODUÇÃO (Remoto)
+ from pydantic_settings import BaseSettings
+
+ class Settings(BaseSettings):
+     DATABASE_URL: str
+
+     class Config:
+         env_file = ".env"
+
+ settings = Settings()
+ SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 # ==============================================================================
 
 
