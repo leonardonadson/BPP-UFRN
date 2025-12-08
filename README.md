@@ -75,16 +75,49 @@ npm run dev
 
 ***
 
+### 🧪 Automação de Testes
+O projeto conta com uma suíte de testes robusta (cobrindo 92% do código), seguindo a pirâmide de testes e os princípios FIRST e AAA (Arrange, Act, Assert).
+
+## 📋 Pré-requisitos de Teste
+Certifique-se de estar no ambiente virtual (venv) do backend e instale as dependências:
+
+```bash
+pip install pytest pytest-cov
+```
+
+## 🚀 Comandos de Execução
+1. Executar todos os testes: Roda testes unitários (lógica de negócio/schemas) e de integração (rotas/banco).
+
+```bash
+pytest
+```
+
+2. Executar com Relatório de Cobertura: Exibe a porcentagem de cobertura no terminal.
+
+```bash
+pytest --cov=app tests/
+```
+
+3. Gerar Relatório HTML Detalhado: Gera um site estático em tests/coverage-results/ para inspeção visual linha a linha.
+
+```bash
+pytest --cov=app --cov-report=html tests/
+```
+
 ## 📂 Estrutura do Repositório
 
 ```
 studystreak/
 ├── api/                  # Backend (FastAPI)
-│   └── src/
-│       ├── controllers/
-│       ├── models/
-│       ├── services/
-│       └── utils/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── models/
+│   │   ├── services/
+│   │   └── utils/
+│   └── tests/            # Suíte de Testes Automatizados
+│       ├── unit/         # Testes isolados (Models, Schemas, Services)
+│       ├── integration/  # Testes de rotas e banco de dados
+│       └── conftest.py   # Configuração de fixtures (DB em memória)
 ├── web/                  # Frontend (React + Vite)
 │   └── src/
 │       ├── components/
@@ -106,7 +139,7 @@ studystreak/
 *   Banco de Dados: SQLite (dev) e PostgreSQL (produção).
 *   Estilização: TailwindCSS para prototipagem rápida e responsiva.
 *   Qualidade: pylint, flake8, black, radon, ESLint, Prettier.
-*   Testes: pytest, httpx (API) e Vitest (frontend).
+*   Testes: pytest, pytest-cov, httpx (API) e Vitest (frontend).
 *   Deploy: Vercel com configuração para monorepo.
 
 ***

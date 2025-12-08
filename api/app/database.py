@@ -7,17 +7,17 @@ from sqlalchemy.orm import sessionmaker
 #SQLALCHEMY_DATABASE_URL = "sqlite:///./studystreak.db"
 # ==============================================================================
 
- MODO 2: AMBIENTE DE PRODUÇÃO (Remoto)
- from pydantic_settings import BaseSettings
+#MODO 2: AMBIENTE DE PRODUÇÃO (Remoto)
+from pydantic_settings import BaseSettings
 
- class Settings(BaseSettings):
-     DATABASE_URL: str
+class Settings(BaseSettings):
+    DATABASE_URL: str
 
-     class Config:
-         env_file = ".env"
+    class Config:
+        env_file = ".env"
 
- settings = Settings()
- SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+settings = Settings()
+SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 # ==============================================================================
 
 
