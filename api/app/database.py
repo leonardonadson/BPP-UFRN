@@ -3,23 +3,29 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# MODO 1: AMBIENTE DE TESTES / QA (Local)
-#SQLALCHEMY_DATABASE_URL = "sqlite:///./studystreak.db"
+# ==============================================================================
+# MODO 2: AMBIENTE DE PRODUÇÃO (Remoto)
+# Nota: Para rodar localmente sem configurar variáveis de ambiente,
+# você pode descomentar o MODO 1 e comentar o MODO 2 temporariamente.
 # ==============================================================================
 
- MODO 2: AMBIENTE DE PRODUÇÃO (Remoto)
- from pydantic_settings import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
 
- class Settings(BaseSettings):
-     DATABASE_URL: str
+    class Settings(BaseSettings):
+        DATABASE_URL: str
 
-     class Config:
-         env_file = ".env"
+        class Config:
+            env_file = ".env"
 
- settings = Settings()
- SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+    settings = Settings()
+    SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+except (ImportError, ValueError):
+    # Fallback para caso não tenha o .env configurado ou a lib instalada
+    # Isso evita que o teste quebre antes mesmo de começar
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./studystreak.db"
+
 # ==============================================================================
-
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,

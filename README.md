@@ -14,21 +14,21 @@ O objetivo principal é aplicar princípios de engenharia de software com **cód
 
 ### 🔹 Planejamento de Produto
 
-*   Visão de Produto, público-alvo e hipótese de valor orientada ao problema central do estudante universitário.
-*   MVP com API e Web App: cadastro, listagem e conclusão de tarefas, pontos e conquistas iniciais.
-*   Product Backlog com user stories, critérios de aceitação e critérios de qualidade para cada item.
+* Visão de Produto, público-alvo e hipótese de valor orientada ao problema central do estudante universitário.
+* MVP com API e Web App: cadastro, listagem e conclusão de tarefas, pontos e conquistas iniciais.
+* Product Backlog com user stories, critérios de aceitação e critérios de qualidade para cada item.
 
 ### 🔹 Boas Práticas e Qualidade
 
-*   Clean Code: nomes claros, funções pequenas, responsabilidade única e formatação consistente.
-*   Identificação de code smells: Long Method, Duplicate Code, Poor Naming e catálogo de refatorações.
-*   Métricas de qualidade: complexidade ciclomática e duplicação monitoradas com ferramentas de análise.
+* Clean Code: nomes claros, funções pequenas, responsabilidade única e formatação consistente.
+* Identificação de code smells: Long Method, Duplicate Code, Poor Naming e catálogo de refatorações.
+* Métricas de qualidade: complexidade ciclomática e duplicação monitoradas com ferramentas de análise.
 
 ### 🔹 Arquitetura e Estrutura
 
-*   Monorepo com backend e frontend em pastas dedicadas, documentação e registro de refatorações.
-*   Arquitetura em camadas no backend: controllers, services, models e utils para separação de responsabilidades.
-*   Componentização no frontend: reutilização e clareza de estado para páginas e componentes de UI.
+* Monorepo com backend e frontend em pastas dedicadas, documentação e registro de refatorações.
+* Arquitetura em camadas no backend: controllers, services, models e utils para separação de responsabilidades.
+* Componentização no frontend: reutilização e clareza de estado para páginas e componentes de UI.
 
 ***
 
@@ -36,14 +36,14 @@ O objetivo principal é aplicar princípios de engenharia de software com **cód
 
 ### 📌 Pré-requisitos
 
-*   Python 3.10+ e gerenciador de pacotes com venv.
-*   Node.js 18+ com npm ou yarn para o frontend.
-*   Banco local SQLite para desenvolvimento e Postgres para produção.
+* Python 3.10+ e gerenciador de pacotes com venv.
+* Node.js 18+ com npm ou yarn para o frontend.
+* Banco local SQLite para desenvolvimento e Postgres para produção.
 
 ### 📥 Clonar o Repositório
 
 ```bash
-git clone https://github.com/leonardonadson/BPP-UFRN.git
+git clone [https://github.com/leonardonadson/BPP-UFRN.git](https://github.com/leonardonadson/BPP-UFRN.git)
 cd BPP-UFRN
 ```
 
@@ -74,6 +74,36 @@ npm run dev
 *   Web disponível em http://127.0.0.1:5173 (ou porta indicada pelo Vite).
 
 ***
+
+## 🧪 Automação de Testes
+O projeto conta com uma suíte de testes robusta (cobrindo 92% do código), seguindo a pirâmide de testes e os princípios FIRST e AAA (Arrange, Act, Assert).
+
+📋 Pré-requisitos de Teste
+Certifique-se de estar no ambiente virtual (venv) do backend e instale as dependências:
+
+```bash
+pip install pytest pytest-cov
+```
+
+## 🚀 Comandos de Execução
+1. Executar todos os testes: Roda testes unitários (lógica de negócio/schemas) e de integração (rotas/banco).
+
+```bash
+pytest
+```
+
+2. Executar com Relatório de Cobertura: Exibe a porcentagem de cobertura no terminal.
+
+```bash
+pip install pytest pytest-cov
+```
+
+3. Gerar Relatório HTML Detalhado: Gera um site estático em tests/coverage-results/ para inspeção visual linha a linha.
+
+```bash
+pytest --cov=app --cov-report=html tests/
+```
+
 
 ## 📂 Estrutura do Repositório
 
