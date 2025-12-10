@@ -58,14 +58,21 @@ def list_tasks(
     """Lista as tarefas do usuário com filtros opcionais"""
     query = db.query(TaskModel).filter(TaskModel.owner_id == current_user.id)
 
+    # [OTIMIZAÇÃO DE PERFORMANCE - GARGALO #2]
+    # Refatoração: Aplicamos os filtros diretamente no objeto Query (SQL WHERE)
+    # ao invés de recuperar todos os dados (.all()) e filtrar com Python.
+    # Isso implementa a técnica de "Push-down Predicate", economizando CPU e I/O.
     if filters.subject:
         query = query.filter(TaskModel.subject == filters.subject)
 
     if filters.completed is not None:
         query = query.filter(TaskModel.is_completed == filters.completed)
 
+    # [OTIMIZAÇÃO DE PERFORMANCE - GARGALO #3]
+    # Ordenação feita no banco para aproveitar índices (quando existirem)
     query = query.order_by(TaskModel.due_date.asc(), TaskModel.weight.desc())
 
+    # Paginação via SQL (LIMIT/OFFSET) para evitar carregar a tabela inteira
     tasks = query.offset(filters.skip).limit(filters.limit).all()
     return tasks
 

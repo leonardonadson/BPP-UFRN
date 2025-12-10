@@ -1,11 +1,13 @@
 """Módulo com os endpoints para informações de utilizadores."""
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func 
 
 # CORREÇÃO: Importações alteradas para absolutas
 from app.auth.auth_bearer import get_current_user
 from app.database import get_db
 from app.models import User as UserModel
+from app.models import Task
 from app.schemas import User, UserDashboard
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -20,13 +22,35 @@ def get_current_user_info(current_user: UserModel = Depends(get_current_user)):
 @router.get("/dashboard", response_model=UserDashboard)
 def get_user_dashboard(
     current_user: UserModel = Depends(get_current_user),
-    _db: Session = Depends(get_db) # Renomeado para _db
+    db: Session = Depends(get_db)
 ):
-    """Retorna dashboard completo do usuário."""
-    # Embora 'db' não seja usado diretamente aqui, as relações do SQLAlchemy
-    # podem precisar de uma sessão ativa para carregar dados (lazy loading).
-    # Por isso, é uma boa prática mantê-lo.
-    tasks = current_user.tasks
-    badges = current_user.badges
+    """Retorna dashboard completo do usuário (Otimizado)."""
 
-    return {"user": current_user, "tasks": tasks, "badges": badges}
+    # 1. OTIMIZAÇÃO GARGALO #4 (N+1):
+    # Recarrega o usuário trazendo Tarefas e Badges em uma única Query (Eager Loading)
+    # Isso evita queries extras quando acessamos .tasks e .badges depois.
+    user_full = db.query(UserModel).options(
+        joinedload(UserModel.tasks),
+        joinedload(UserModel.badges)
+    ).filter(UserModel.id == current_user.id).first()
+
+    # 2. OTIMIZAÇÃO GARGALO #1 (Soma em Memória):
+    # Faz a soma dos pontos diretamente no Banco de Dados (SQL SUM)
+    # Em vez de: sum(t.points_awarded for t in tasks)
+    total_task_points = db.query(func.sum(Task.points_awarded))\
+        .filter(Task.owner_id == current_user.id).scalar() or 0
+
+    # Lógica de visualização (apenas print)
+    tasks_count = len(user_full.tasks)
+    if tasks_count > 0:
+        average = total_task_points / tasks_count
+        print(f"Média: {average:.2f}")
+    else:
+        print("Média: 0 (Sem tarefas)")
+
+    # Retorna o objeto carregado de forma otimizada
+    return {
+        "user": user_full,
+        "tasks": user_full.tasks,
+        "badges": user_full.badges
+    }

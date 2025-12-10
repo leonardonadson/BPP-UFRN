@@ -64,6 +64,7 @@ def process_task_completion(user: User, task: Task, db: Session) -> dict:
 
     points_earned = award_points_for_task(user, task, db)
     streak_updated = update_user_streak(user, db)
+    db.flush()
     badges_earned = check_and_award_badges(user, db)
 
     db.commit()

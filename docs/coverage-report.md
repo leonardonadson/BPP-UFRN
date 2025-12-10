@@ -66,4 +66,4 @@ Este relatório foi gerado automaticamente a partir da execução da suíte de t
 
 Abaixo, o relatório comprovando 92% de cobertura de código:
 
-![Relatório de Cobertura](docs\assets\BPP_ultima_analise.png)
+![Relatório de Cobertura](docs\assets\cov_rep_9.png)

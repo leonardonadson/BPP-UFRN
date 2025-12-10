@@ -75,17 +75,17 @@ npm run dev
 
 ***
 
-### 🧪 Automação de Testes
+## 🧪 Automação de Testes
 O projeto conta com uma suíte de testes robusta (cobrindo 92% do código), seguindo a pirâmide de testes e os princípios FIRST e AAA (Arrange, Act, Assert).
 
-## 📋 Pré-requisitos de Teste
+### 📋 Pré-requisitos de Teste
 Certifique-se de estar no ambiente virtual (venv) do backend e instale as dependências:
 
 ```bash
 pip install pytest pytest-cov
 ```
 
-## 🚀 Comandos de Execução
+### 🚀 Comandos de Execução
 1. Executar todos os testes: Roda testes unitários (lógica de negócio/schemas) e de integração (rotas/banco).
 
 ```bash
@@ -104,28 +104,61 @@ pytest --cov=app tests/
 pytest --cov=app --cov-report=html tests/
 ```
 
+***
+
+## ⚡ Análise de Desempenho
+Além dos testes funcionais, o projeto possui um script de profiling dedicado para identificar gargalos de CPU e Banco de Dados (como o problema N+1 e Full Table Scans).
+
+### 📋 Execução do Teste de Carga
+Este script gera uma massa de dados (1.000 usuários, 50.000 tarefas) e analisa 5 cenários críticos de performance.
+
+Nota: Certifique-se de que o arquivo app/database.py está configurado para usar o SQLite (Modo 1).
+
+```bash
+# Execute a partir da raiz do projeto
+python scripts/performance_test.py
+```
+
+### 📊 Resultados e Documentação
+A análise completa dos gargalos, comparativos de tempo ("Antes vs Depois") e trade-offs das otimizações encontra-se em:
+
+📄 Documentação Técnica: docs/performance-analysis.md
+
+📸 Evidências de Execução: docs/assets/
+
+***
+
 ## 📂 Estrutura do Repositório
 
 ```
 studystreak/
-├── api/                  # Backend (FastAPI)
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── models/
+├── api/                         # Backend (FastAPI)
+│   ├── app/
+│   │   ├── auth/
+│   │   ├── routers/
 │   │   ├── services/
 │   │   └── utils/
-│   └── tests/            # Suíte de Testes Automatizados
-│       ├── unit/         # Testes isolados (Models, Schemas, Services)
-│       ├── integration/  # Testes de rotas e banco de dados
-│       └── conftest.py   # Configuração de fixtures (DB em memória)
-├── web/                  # Frontend (React + Vite)
+│   └── venv/
+│
+├── docs/                       # Visão, backlog e materiais do produto
+│   └── assets/
+│
+├── refactoring/                # Registro de code smells e refatorações
+│
+├── scripts/                    # Análise de performance
+│
+├── tests/                      # Suíte de Testes Automatizados
+│   ├── coverage-results/
+│   ├── integration/            # Testes de rotas e banco de dados
+│   └── unit/                   # Testes isolados (Models, Schemas, Services)
+│
+├── web/                        # Frontend (React + Vite)
 │   └── src/
 │       ├── components/
-│       ├── pages/
+│       ├── types/
 │       └── services/
-├── docs/                 # Visão, backlog e materiais do produto
-├── refactoring/          # Registro de code smells e refatorações
-└── README.md
+│
+└── README.md                   # Apresentação e execução do projeto
 ```
 
 *   Monorepo para desenvolvimento coeso de API e Web App com documentação centralizada.

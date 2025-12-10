@@ -1,4 +1,3 @@
-# scripts/performance_test.py
 import sys
 import os
 import cProfile
@@ -7,31 +6,31 @@ import random
 import string
 from io import StringIO
 from sqlalchemy.orm import joinedload
+from sqlalchemy import func
 
-# Configuração de Caminho
+# Configuração de Caminho para importar seus arquivos reais
 sys.path.append(os.path.join(os.getcwd(), 'api'))
 
 from app.database import SessionLocal, engine, Base
-from app.models import User, Task
+from app.models import User, Task, Badge
 
 # ==========================================
-# Configurações
+# Configurações & Seed (Mantido igual)
 # ==========================================
-NUM_USERS = 1000
-TASKS_PER_USER = 50
-SEARCH_TERM = "Relatório Final"
+NUM_USERS = 500
+TASKS_PER_USER = 100 # Aumentei para pesar mais na soma
 
 def generate_random_string(length=10):
     return ''.join(random.choices(string.ascii_letters, k=length))
 
 def seed_database(db):
-    print("--- 1. Verificando Banco de Dados ---")
+    print("--- Verificando/Gerando Massa de Dados ---")
     if db.query(User).count() >= NUM_USERS:
-        print("Banco já populado. Pulando Seed.")
+        print("Banco populado. Pulando seed.")
         return
 
-    print(f"Gerando {NUM_USERS * TASKS_PER_USER} tarefas...")
-    users = [User(email=f"u{i}_{generate_random_string()}@test.com", username=f"u{i}", hashed_password="123") for i in range(NUM_USERS)]
+    print("Gerando usuários e tarefas...")
+    users = [User(email=f"user{i}_{generate_random_string()}@test.com", username=f"u{i}", hashed_password="123") for i in range(NUM_USERS)]
     db.add_all(users)
     db.commit()
 
@@ -39,53 +38,109 @@ def seed_database(db):
     tasks = []
     for user in all_users:
         for _ in range(TASKS_PER_USER):
-            title = generate_random_string(20)
-            if random.random() < 0.01: title = f"Fazer {SEARCH_TERM} agora"
-            tasks.append(Task(title=title, subject="DevOps", weight=1, owner_id=user.id))
-
+            tasks.append(Task(
+                title=generate_random_string(20),
+                subject="Math",
+                weight=random.randint(1, 10), # Pontos aleatórios para somar
+                points_awarded=random.randint(1, 100),
+                owner_id=user.id,
+                is_completed=True
+            ))
     db.add_all(tasks)
     db.commit()
     print("Seed concluído.")
 
-# --- GARGALO 1: Query Lenta (Database Bound) ---
-def scenario_1_database_search(db):
-    """
-    Busca usando o motor do banco (SQL).
-    O gargalo aqui é o I/O do banco (Full Table Scan se sem índice).
-    """
-    results = db.query(Task).filter(Task.title.ilike(f"%{SEARCH_TERM}%")).all()
-    return len(results)
+# ==========================================
+# GARGALO 1: Soma de Pontos (Dashboard)
+# Referência: app/routers/users.py
+# ==========================================
+def scenario_1_dashboard_sum_python(db):
+    """Simula: users.py -> sum(t.points_awarded for t in tasks)"""
+    user = db.query(User).first()
+    # Traz tarefas para a RAM
+    tasks = db.query(Task).filter(Task.owner_id == user.id).all()
+    # Soma no Python
+    total = sum(t.points_awarded for t in tasks)
+    return total
 
-# --- GARGALO 2: Processamento Lento (CPU Bound) ---
-def scenario_2_python_processing(db):
-    """
-    Busca TUDO do banco e filtra no Python usando um loop.
-    Isso é extremamente ineficiente (muita memória e CPU).
-    """
-    # 1. Traz 50.000 objetos para a memória RAM (Lento!)
-    all_tasks = db.query(Task).all()
+def scenario_1_dashboard_sum_sql(db):
+    """Otimização: Soma direto no SQL"""
+    user = db.query(User).first()
+    # Soma no Banco
+    total = db.query(func.sum(Task.points_awarded)).filter(Task.owner_id == user.id).scalar()
+    return total or 0
 
-    filtered_results = []
-    # 2. Loop manual no Python (Lento!)
-    for task in all_tasks:
-        if SEARCH_TERM.lower() in task.title.lower():
-            filtered_results.append(task)
+# ==========================================
+# GARGALO 2: Verificação de Badges
+# Referência: app/services/badge_service.py
+# ==========================================
+def scenario_2_badges_len_all(db):
+    """Simula versão ruim: len(query.all())"""
+    user = db.query(User).first()
+    # Traz objetos pesados para contar
+    tasks = db.query(Task).filter(Task.owner_id == user.id, Task.is_completed == True).all()
+    return len(tasks)
 
-    return len(filtered_results)
+def scenario_2_badges_count_sql(db):
+    """Simula sua versão atual: query.count()"""
+    user = db.query(User).first()
+    # Conta no banco
+    count = db.query(Task).filter(Task.owner_id == user.id, Task.is_completed == True).count()
+    return count
 
+# ==========================================
+# GARGALO 3: Paginação (tasks.py)
+# Teste de Offset Pagination
+# ==========================================
+def scenario_3_pagination_shallow(db):
+    """Página 1: skip=0 (Rápido)"""
+    # Simula: list_tasks(filters=TaskFilterParams(skip=0, limit=10))
+    return db.query(Task).limit(10).all()
+
+def scenario_3_pagination_deep(db):
+    """Página 500: skip=5000 (Lento - O Banco lê e descarta 5k linhas)"""
+    # Simula: list_tasks(filters=TaskFilterParams(skip=5000, limit=10))
+    return db.query(Task).offset(5000).limit(10).all()
+
+# ==========================================
+# GARGALO 4: Carregamento de Relações (users.py)
+# Lazy Load vs Eager Load
+# ==========================================
+def scenario_4_lazy_loading(db):
+    """Simula o atual users.py: Acessar .tasks depois de carregar user"""
+    # 1. Carrega usuários (simula get_current_user)
+    users = db.query(User).limit(50).all()
+    count = 0
+    for user in users:
+        # GARGALO: O SQLAlchemy faz 1 query extra AQUI para cada usuário
+        count += len(user.tasks)
+    return count
+
+def scenario_4_eager_loading(db):
+    """Otimização: Carregar user JÁ com as tasks (JOIN)"""
+    # 1. Carrega usuários COM as tarefas (1 Query só com JOIN)
+    users = db.query(User).options(joinedload(User.tasks)).limit(50).all()
+    count = 0
+    for user in users:
+        # Zero custo: dados já estão na memória
+        count += len(user.tasks)
+    return count
+
+# ==========================================
+# Execução
+# ==========================================
 def run_profile(name, func, db):
     print(f"\n--- Analisando: {name} ---")
     profiler = cProfile.Profile()
     profiler.enable()
-    count = func(db)
+    # Rodamos 100 vezes para o gargalo ficar visível, já que o SQLite é muito rápido
+    for _ in range(100):
+        func(db)
     profiler.disable()
 
-    print(f"Itens encontrados: {count}")
-
     s = StringIO()
-    # Ordena por 'tottime' para ver onde a CPU gastou mais tempo
     ps = pstats.Stats(profiler, stream=s).sort_stats('tottime')
-    ps.print_stats(10) # Top 10 funções
+    ps.print_stats(5)
     print(s.getvalue())
 
 if __name__ == "__main__":
@@ -94,62 +149,21 @@ if __name__ == "__main__":
     try:
         seed_database(db)
 
-        # Executa os dois cenários para comparação
-        run_profile("Gargalo 1: Busca no Banco (SQL)", scenario_1_database_search, db)
-        run_profile("Gargalo 2: Filtragem no Python (CPU)", scenario_2_python_processing, db)
+        # Dashboard: Python vs SQL Sum
+        run_profile("Gargalo 1: Soma Python (users.py)", scenario_1_dashboard_sum_python, db)
+        run_profile("Gargalo 1: Soma SQL (Otimizado)", scenario_1_dashboard_sum_sql, db)
 
-    finally:
-        db.close()
+        # Badges: Len vs Count
+        run_profile("Gargalo 2: Listar Tudo (Bad Practice)", scenario_2_badges_len_all, db)
+        run_profile("Gargalo 2: SQL Count (badge_service.py)", scenario_2_badges_count_sql, db)
 
-def scenario_3_n_plus_one_problem(db):
-    """
-    O Erro Clássico: Lazy Loading.
-    Buscamos 1000 usuários (1 Query).
-    Depois iteramos. Ao tocar em 'user.tasks', o ORM faz UMA NOVA QUERY por usuário.
-    Total: 1001 Queries. Lento demais.
-    """
-    # 1. Busca todos os usuários (Query 1)
-    users = db.query(User).all()
+        # Paginação
+        run_profile("Gargalo 3: Paginação Inicial (skip=0)", scenario_3_pagination_shallow, db)
+        run_profile("Gargalo 3: Paginação Profunda (skip=5000)", scenario_3_pagination_deep, db)
 
-    total_tasks = 0
-    for user in users:
-        # PERIGO: Acessar .tasks aqui dispara uma query nova no banco para CADA usuário
-        # Se temos 1000 usuários, faremos 1000 queries aqui dentro.
-        total_tasks += len(user.tasks)
-
-    return total_tasks
-
-def scenario_3_optimized_eager_loading(db):
-    """
-    A Solução: Eager Loading (Joined Load).
-    Avisamos ao ORM: "Vou precisar das tarefas, traga tudo junto num JOIN".
-    Total: 1 Query (ou 2 dependendo da estratégia).
-    """
-    # Usamos options(joinedload(...)) para trazer tudo de uma vez
-    users = db.query(User).options(joinedload(User.tasks)).all()
-
-    total_tasks = 0
-    for user in users:
-        # Agora .tasks já está na memória. Zero queries aqui.
-        total_tasks += len(user.tasks)
-
-    return total_tasks
-
-# ... (Mantenha a função run_profile igual) ...
-
-if __name__ == "__main__":
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        seed_database(db) # Garante que temos dados
-
-        # --- EXECUÇÃO DOS CENÁRIOS ---
-        # run_profile("Gargalo 1...", scenario_1_database_search, db)
-        # run_profile("Gargalo 2...", scenario_2_python_processing, db)
-
-        # NOVOS CENÁRIOS
-        run_profile("Gargalo 3: N+1 Selects (Lazy Loading)", scenario_3_n_plus_one_problem, db)
-        run_profile("Gargalo 3: Eager Loading (Otimizado)", scenario_3_optimized_eager_loading, db)
+        # Lazy vs Eager
+        run_profile("Gargalo 4: Lazy Loading (users.py atual)", scenario_4_lazy_loading, db)
+        run_profile("Gargalo 4: Eager Loading (Otimizado)", scenario_4_eager_loading, db)
 
     finally:
         db.close()
