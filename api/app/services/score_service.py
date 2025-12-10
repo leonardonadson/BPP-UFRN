@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from functools import lru_cache
 
 from sqlalchemy.orm import Session
 
@@ -6,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.models import Task, User
 from app.services.badge_service import check_and_award_badges
 
+@lru_cache(maxsize=128)
 def calculate_task_points(weight: int, completed_on_time: bool = True) -> int:
     """Calcula os pontos de uma tarefa."""
     base_points = weight * 10

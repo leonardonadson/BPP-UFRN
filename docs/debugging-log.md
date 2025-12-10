@@ -131,3 +131,9 @@ class TaskFilterParams(BaseModel):
     skip: int = Field(0, ge=0, description="Registros para pular")
     limit: int = Field(100, ge=1, le=100, description="Limite de registros")
 ```
+
+## 📊 Evidência de análise de performance
+
+Abaixo, estão documentados prints que evidenciam a resolução dos bugs encontrados no código não revisado:
+
+![Resultados "ANTES/DEPOIS" de funções específicas da API](docs\assets)

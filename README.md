@@ -106,16 +106,24 @@ pytest --cov=app --cov-report=html tests/
 
 ***
 
-## ⚡ Análise de Desempenho
-Além dos testes funcionais, o projeto possui um script de profiling dedicado para identificar gargalos de CPU e Banco de Dados (como o problema N+1 e Full Table Scans).
+## ⚡ Análise de Desempenho e Otimização
 
-### 📋 Execução do Teste de Carga
-Este script gera uma massa de dados (1.000 usuários, 50.000 tarefas) e analisa 5 cenários críticos de performance.
+O projeto inclui uma suíte de testes de performance (`scripts/performance_test.py`) que utiliza **`cProfile`** para identificar gargalos de CPU e I/O (Banco de Dados).
 
-Nota: Certifique-se de que o arquivo app/database.py está configurado para usar o SQLite (Modo 1).
+A análise comparou implementações "Ingênuas" contra "Otimizadas" (Best Practices) nos arquivos principais da API, resultando nos seguintes ganhos:
+
+| Gargalo Identificado | Otimização Aplicada | Resultado (Tempo/Recurso) |
+| :--- | :--- | :--- |
+| **1. Agregação (Dashboard)** | Cálculo via SQL `SUM` vs Python `sum()` | Redução de uso de CPU e Memória RAM |
+| **2. Contagem (Badges)** | Uso de `COUNT(*)` vs `len(all())` | Complexidade de Memória de **O(N)** para **O(1)** |
+| **3. Paginação (Tasks)** | Filtros SQL (`LIMIT/OFFSET`) | Prevenção de *Full Table Scan* e *Overfetching* |
+| **4. N+1 Selects (Users)** | Uso de `joinedload` (Eager Loading) | **2.6x mais rápido** (44s ➝ 17s) |
+
+### 📋 Execução dos Testes
+O script de carga popula automaticamente um banco de dados SQLite local com **500 usuários** e **50.000 tarefas** para simular um ambiente de produção real.
 
 ```bash
-# Execute a partir da raiz do projeto
+# Certifique-se de estar com o venv ativo
 python scripts/performance_test.py
 ```
 
@@ -125,6 +133,34 @@ A análise completa dos gargalos, comparativos de tempo ("Antes vs Depois") e tr
 📄 Documentação Técnica: docs/performance-analysis.md
 
 📸 Evidências de Execução: docs/assets/
+
+***
+
+## 🧠 Gerenciamento de Memória e Eficiência
+
+Para atender aos requisitos de otimização em linguagens gerenciadas (Python), foram implementadas estratégias de **Lazy Evaluation** e **Caching** para mitigar gargalos de RAM e CPU.
+
+A análise foi realizada utilizando **`tracemalloc`** e demonstrou ganhos expressivos em dois cenários críticos:
+
+| Técnica | Aplicação (Arquivo) | Resultado (Antes ➝ Depois) | Impacto |
+| :--- | :--- | :--- | :--- |
+| **Generators** (Yield) | Exportação de Dados (`app/utils/export.py`) | **6.75 MB ➝ 0.0006 MB** | Economia de **99.9% de RAM** (O(N) ➝ O(1)) |
+| **Cache LRU** | Cálculo de Pontuação (`app/services/score_service.py`) | **1.80s ➝ 0.006s** | Execução **300x mais rápida** em cargas repetitivas |
+
+### 🧪 Validação dos Testes
+O projeto inclui um script de laboratório que simula alta carga (100.000 registros) para validar essas métricas:
+
+```bash
+# Executa a análise comparativa de memória e CPU
+python scripts/memory_test.py
+```
+
+### 📄 Documentação Técnica
+Detalhes sobre a implementação do lru_cache, a substituição de listas por generators e as evidências de execução (snapshots de memória) estão disponíveis em:
+
+* **Relatório Completo:** docs/memory-analysis.md
+
+* **Evidências:** Pasta docs/assets/
 
 ***
 
@@ -141,14 +177,19 @@ studystreak/
 │   └── venv/
 │
 ├── docs/                       # Visão, backlog e materiais do produto
-│   └── assets/
+│   ├── assets/
+│   ├── coverage-report.md      # Análise de cobertura
+│   ├── debugging-log.md        # Gugs encontrados
+│   ├── memory-analysis.md      # Gargalos e otimizações
+│   ├── performance-analysis.md   # Análise de memória
+│   └── testing-report.md         # Relatório completo
 │
 ├── refactoring/                # Registro de code smells e refatorações
 │
 ├── scripts/                    # Análise de performance
 │
 ├── tests/                      # Suíte de Testes Automatizados
-│   ├── coverage-results/
+│   ├── coverage-results/       # Relatórios HTML
 │   ├── integration/            # Testes de rotas e banco de dados
 │   └── unit/                   # Testes isolados (Models, Schemas, Services)
 │
@@ -158,22 +199,23 @@ studystreak/
 │       ├── types/
 │       └── services/
 │
-└── README.md                   # Apresentação e execução do projeto
+└── README.md                   # Visão geral + instruções
 ```
 
 *   Monorepo para desenvolvimento coeso de API e Web App com documentação centralizada.
 
 ***
 
-## 🛠️ Tecnologias
+## 🛠 Tecnologias
 
-*   Backend: Python, FastAPI, SQLAlchemy, autenticação JWT.
-*   Frontend: React com Vite, componentes reutilizáveis e estado claro.
-*   Banco de Dados: SQLite (dev) e PostgreSQL (produção).
-*   Estilização: TailwindCSS para prototipagem rápida e responsiva.
-*   Qualidade: pylint, flake8, black, radon, ESLint, Prettier.
-*   Testes: pytest, pytest-cov, httpx (API) e Vitest (frontend).
-*   Deploy: Vercel com configuração para monorepo.
+* **Backend:** Python, FastAPI, SQLAlchemy (com otimizações Eager Loading e Aggregations), autenticação JWT.
+* **Frontend:** React com Vite, componentes reutilizáveis e estado claro.
+* **Banco de Dados:** SQLite (dev) e PostgreSQL (produção).
+* **Estilização:** TailwindCSS para prototipagem rápida e responsiva.
+* **Qualidade:** pylint, flake8, black, radon, ESLint, Prettier.
+* **Performance & Profiling:** cProfile, pstats (CPU), tracemalloc (Memória).
+* **Testes:** pytest, pytest-cov, httpx (API) e Vitest (frontend).
+* **Deploy:** Vercel com configuração para monorepo.
 
 ***
 

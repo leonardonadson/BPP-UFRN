@@ -179,7 +179,8 @@ for user in users:
 
 * **Mitigação:** Para relações muito grandes, deve-se evitar tanto o Lazy quanto o Eager loading puro, preferindo queries específicas com paginação.
 
+## 📊 Evidência de análise de performance
 
+Abaixo, estão documentados prints que evidenciam a eficiência da análise de performance realizada:
 
-
-
+![Resultados "ANTES/DEPOIS" das análises de performance realizadas](docs\assets)
