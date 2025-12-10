@@ -85,6 +85,10 @@ Certifique-se de estar no ambiente virtual (venv) do backend e instale as depend
 pip install pytest pytest-cov
 ```
 
+```bash
+pip install pytest pytest-cov httpx
+```
+
 ### 🚀 Comandos de Execução
 1. Executar todos os testes: Roda testes unitários (lógica de negócio/schemas) e de integração (rotas/banco).
 

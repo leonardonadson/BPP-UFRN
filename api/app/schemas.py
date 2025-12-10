@@ -42,10 +42,10 @@ class User(UserBase):
 
 from pydantic import Field
 class TaskFilterParams(BaseModel):
-    skip: int = 0
     skip: int = Field(0, ge=0, description="Registros para pular")
     limit: int = Field(100, ge=1, le=100, description="Limite de registros")
     completed: Optional[bool] = None
+    subject: Optional[str] = None  # <--- CORREÇÃO: Campo adicionado
 
 
 class TaskBase(BaseModel):

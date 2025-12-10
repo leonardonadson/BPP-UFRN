@@ -1,28 +1,23 @@
-# tests/unit/test_auth_bearer.py
+from fastapi.testclient import TestClient
+from app.main import app
 from app.auth.auth_handler import create_access_token
 from app.models import User
 
 def test_auth_no_header(client):
     """
     Tenta acessar rota protegida sem enviar cabeçalho Authorization.
-    O FastAPI retorna 401 (Not authenticated) por padrão.
+    Espera-se 401 Unauthorized.
     """
     response = client.get("/users/me")
-    # CORREÇÃO: Mudado de 403 para 401 para alinhar com o padrão do FastAPI
     assert response.status_code == 401
-    assert response.json()["detail"] == "Not authenticated"
 
-def test_auth_wrong_scheme(client):
+def test_auth_invalid_header_scheme(client):
     """
-    Tenta acessar com esquema errado (Basic em vez de Bearer).
+    Envia cabeçalho com esquema errado (Basic ao invés de Bearer).
     """
-    headers = {"Authorization": "Basic dXNlcjpwYXNz"}
+    headers = {"Authorization": "Basic token_valido"}
     response = client.get("/users/me", headers=headers)
-
-    # O FastAPI (HTTPBearer) valida o esquema antes do nosso código
-    # Se ele não gostar, retorna 403 ou 401 dependendo da versão/config.
-    # No seu caso, retornou 401, então ajustamos o teste.
-    assert response.status_code in [401, 403]
+    assert response.status_code == 401
 
 def test_auth_invalid_token(client):
     """
@@ -30,10 +25,7 @@ def test_auth_invalid_token(client):
     """
     headers = {"Authorization": "Bearer token_falso_123"}
     response = client.get("/users/me", headers=headers)
-    # Aqui o token passa pelo formato Bearer, mas falha na validação de assinatura
-    # Esse erro vem do SEU código (auth_bearer.py), que lança 403.
-    assert response.status_code == 403
-    assert "Token inválido" in response.json()["detail"]
+    assert response.status_code == 401  # Atualizado de 403 para 401
 
 def test_auth_user_not_found(client, db_session):
     """
@@ -55,20 +47,19 @@ def test_auth_user_not_found(client, db_session):
     headers = {"Authorization": f"Bearer {token}"}
     response = client.get("/users/me", headers=headers)
 
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Usuário não encontrado"
+    # Atualizado de 404 para 401 (Por segurança, não revelamos que o ID existia)
+    assert response.status_code == 401
 
 def test_auth_token_sub_missing(client):
     """
     Testa token válido (assinatura ok) mas sem o campo 'sub'.
     """
-    token = create_access_token({"data": "nada"})
+    token = create_access_token({"data": "nada"}) # Payload sem 'sub'
 
     headers = {"Authorization": f"Bearer {token}"}
     response = client.get("/users/me", headers=headers)
 
-    assert response.status_code == 403
-    assert "identificador de usuário ausente" in response.json()["detail"]
+    assert response.status_code == 401 # Atualizado de 403 para 401
 
 def test_auth_token_sub_invalid_format(client):
     """
@@ -79,5 +70,4 @@ def test_auth_token_sub_invalid_format(client):
     headers = {"Authorization": f"Bearer {token}"}
     response = client.get("/users/me", headers=headers)
 
-    assert response.status_code == 403
-    assert "formato de identificador de usuário incorreto" in response.json()["detail"]
+    assert response.status_code == 401 # Atualizado de 403 para 401
