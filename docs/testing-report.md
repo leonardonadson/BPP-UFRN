@@ -14,7 +14,7 @@
     * 2 Testes de API Usuários (Dashboard)
     * 8 Testes Unitários (Validação de Schemas)
 * **Status:** ✅ Passing (100% Aprovado)
-* **Tempo de Execução:** ~0.95s (Princípio FAST mantido)
+* **Tempo de Execução:** ~2.0s (Princípio FAST mantido)
 
 ### 1.2 Estrutura do Projeto
 * `tests/unit/`: Testes isolados que não dependem do banco de dados (Regras de negócio e Schemas).
