@@ -37,8 +37,9 @@ badges_earned = check_and_award_badges(user, db) # Bug: Banco ainda vê tarefa c
 **Depois:**
 ```python
 task.is_completed = True
-# ... (código intermediário)
-db.flush()  # <--- CORREÇÃO: Sincroniza memória com transação do banco
+points_earned = award_points_for_task(user, task, db)
+streak_updated = update_user_streak(user, db)
+db.flush()  # <--- CORREÇÃO
 badges_earned = check_and_award_badges(user, db)
 ```
 

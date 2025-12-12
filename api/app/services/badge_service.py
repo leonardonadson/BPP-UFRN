@@ -67,11 +67,7 @@ def check_and_award_badges(user: User, db: Session) -> List[Badge]:
     all_badges = db.query(Badge).all()
     user_badge_ids = {ub.badge_id for ub in user.badges}
 
-    # [OTIMIZAÇÃO DE PERFORMANCE - GARGALO #4]
-    # Refatoração: Substituído o carregamento de objetos em memória.
-    # Antes: len(db.query(Task).filter(...).all()) -> O(N) Memória
-    # Agora: db.query(Task).filter(...).count()    -> O(1) Memória
-    # Motivo: Evitar Memory Overflow com grande volume de tarefas.
+
     completed_tasks_count = db.query(Task).filter(
         Task.owner_id == user.id, Task.is_completed == True
     ).count()
