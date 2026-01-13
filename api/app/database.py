@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-   DATABASE_URL: str
+    DATABASE_URL: str
 
     class Config:
         env_file = ".env"
