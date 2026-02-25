@@ -1,0 +1,9 @@
+# Python Testing Caches
+.pytest_cache/
+tests/**/__pycache__/
+__pycache__/
+*.cpython-*.pyc
+test.db
+
+# Misc
+.DS_Store
