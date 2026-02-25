@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskList } from './TaskList';
 import { CreateTaskModal } from './CreateTaskModal';
+import { EditTaskModal } from './EditTaskModal';
 import { UserStats } from './UserStats';
+import { SubjectsManager } from './SubjectsManager';
 import { DeleteConfirmationModal } from '@/components/dashboard/DeleteConfirmationModal';
 import type { Task } from '@/types/task';
-import type { User } from '@/types/user'; 
+import type { User, UserBadge } from '@/types/user';
 import { taskService } from '@/services/taskService';
 import { userService } from '@/services/userService';
 import { Plus, LogOut } from 'lucide-react';
@@ -14,25 +16,28 @@ export const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [userStats, setUserStats] = useState<User | null>(null);
+  const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
-  const [taskToDeleteId, setTaskToDeleteId] = useState<number | null>(null); 
+
+  const [taskToDeleteId, setTaskToDeleteId] = useState<number | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
   const loadData = async () => {
     try {
-      const [tasksData, userData] = await Promise.all([
-        taskService.getTasks(),
-        userService.getUserData()
-      ]);
-      
-      const formattedTasks = tasksData.map((task: any) => ({
+      // O userService agora puxa de /users/dashboard, 
+      // então tasks também já vêm dali. Mas mantemos chamada separada
+      // para facilitar se necessário. Vamos pegar os dados do dashboard.
+      const dashboardData = await userService.getUserData();
+
+      const formattedTasks = dashboardData.tasks.map((task: any) => ({
         ...task,
         completed: task.is_completed
       }));
-      
+
       setTasks(formattedTasks);
-      setUserStats(userData);
+      setUserStats(dashboardData.user);
+      setUserBadges(dashboardData.badges);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -47,7 +52,7 @@ export const Dashboard: React.FC = () => {
   const handleTaskComplete = async (taskId: number) => {
     try {
       await taskService.completeTask(taskId);
-      await loadData(); 
+      await loadData();
     } catch (error) {
       console.error('Erro ao completar tarefa:', error);
     }
@@ -57,20 +62,29 @@ export const Dashboard: React.FC = () => {
     loadData();
     setIsCreateModalOpen(false);
   };
-  
+
   const handleDeleteTaskRequest = (taskId: number) => {
     setTaskToDeleteId(taskId);
   };
-  
+
   const handleTaskDelete = async (taskId: number) => {
     try {
       await taskService.deleteTask(taskId);
-      await loadData(); 
-      setTaskToDeleteId(null); 
+      await loadData();
+      setTaskToDeleteId(null);
     } catch (error) {
       console.error('Erro ao excluir tarefa:', error);
-      setTaskToDeleteId(null); 
+      setTaskToDeleteId(null);
     }
+  };
+
+  const handleTaskEdit = (task: Task) => {
+    setTaskToEdit(task);
+  };
+
+  const handleTaskUpdated = () => {
+    loadData();
+    setTaskToEdit(null);
   };
 
   if (isLoading) {
@@ -112,15 +126,17 @@ export const Dashboard: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1">
-            {userStats && <UserStats user={userStats} tasks={tasks} />}
+          <div className="lg:col-span-1 space-y-6">
+            {userStats && <UserStats user={userStats} tasks={tasks} badges={userBadges} />}
+            <SubjectsManager onSubjectsChange={loadData} />
           </div>
-          
+
           <div className="lg:col-span-3">
-            <TaskList 
-              tasks={tasks} 
+            <TaskList
+              tasks={tasks}
               onTaskComplete={handleTaskComplete}
               onTaskDelete={handleDeleteTaskRequest}
+              onTaskEdit={handleTaskEdit}
             />
           </div>
         </div>
@@ -132,14 +148,22 @@ export const Dashboard: React.FC = () => {
           onTaskCreated={handleTaskCreated}
         />
       )}
-      
+
+      {taskToEdit !== null && (
+        <EditTaskModal
+          task={taskToEdit}
+          onClose={() => setTaskToEdit(null)}
+          onTaskUpdated={handleTaskUpdated}
+        />
+      )}
+
       {taskToDeleteId !== null && (
         <DeleteConfirmationModal
           taskId={taskToDeleteId}
           onConfirm={handleTaskDelete}
           onClose={() => setTaskToDeleteId(null)}
         />
-      )} 
+      )}
     </div>
   );
 };
