@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Task, CreateTaskRequest, TaskFilters, CompleteTaskResponse } from '@/types/task';
+import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskFilters, CompleteTaskResponse } from '@/types/task';
 
 export const taskService = {
   async createTask(taskData: CreateTaskRequest): Promise<Task> {
@@ -7,7 +7,7 @@ export const taskService = {
       const { data } = await api.post<Task>('/tasks/', taskData);
       return data;
     } catch (error: any) {
-      throw error; 
+      throw error;
     }
   },
 
@@ -32,6 +32,15 @@ export const taskService = {
   async completeTask(taskId: number): Promise<CompleteTaskResponse> {
     try {
       const { data } = await api.patch<CompleteTaskResponse>(`/tasks/${taskId}/complete`, {});
+      return data;
+    } catch (error: any) {
+      throw error;
+    }
+  },
+
+  async updateTask(taskId: number, taskData: UpdateTaskRequest): Promise<Task> {
+    try {
+      const { data } = await api.put<Task>(`/tasks/${taskId}`, taskData);
       return data;
     } catch (error: any) {
       throw error;

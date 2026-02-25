@@ -25,6 +25,14 @@ export interface CreateTaskRequest {
   due_date: string;
 }
 
+export interface UpdateTaskRequest {
+  title?: string;
+  description?: string;
+  subject?: string;
+  weight?: number;
+  due_date?: string;
+}
+
 export interface CompleteTaskResponse {
   task: Task;
   points_earned: number;

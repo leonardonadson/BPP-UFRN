@@ -8,7 +8,7 @@ from app.auth.auth_bearer import get_current_user
 from app.database import get_db
 from app.models import Task as TaskModel
 from app.models import User
-from app.schemas import Task, TaskCreate, TaskFilterParams, TaskResponse
+from app.schemas import Task, TaskCreate, TaskFilterParams, TaskResponse, TaskUpdate
 from app.services.score_service import process_task_completion
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
@@ -107,6 +107,29 @@ def delete_task(
     """Deleta uma tarefa do usuário"""
     db.delete(task)
     db.commit()
+
+@router.put("/{task_id}", response_model=Task)
+def update_task(
+    task_data: TaskUpdate,
+    task: TaskModel = Depends(get_task_for_user_dependency),
+    db: Session = Depends(get_db)
+):
+    """Atualiza uma tarefa do usuário"""
+    update_dict = task_data.dict(exclude_unset=True)
+
+    if not update_dict:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nenhum campo para atualizar"
+        )
+
+    for field, value in update_dict.items():
+        setattr(task, field, value)
+
+    db.commit()
+    db.refresh(task)
+
+    return task
 
 @router.get("/subjects/list", response_model=List[str])
 def list_subjects(
