@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { CreateTaskRequest } from '@/types/task';
+import type { Subject } from '@/types/subject';
 import { taskService } from '@/services/taskService';
-import { X } from 'lucide-react';
+import { subjectService } from '@/services/subjectService';
+import { X, ChevronDown } from 'lucide-react';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
@@ -21,19 +23,25 @@ interface CreateTaskModalProps {
   onTaskCreated: () => void;
 }
 
-export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ 
-  onClose, 
-  onTaskCreated 
+export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
+  onClose,
+  onTaskCreated
 }) => {
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
+    watch,
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
   });
+
+  const subjectValue = watch('subject') || '';
 
   useEffect(() => {
     // Definir data/hora padrão como amanhã às 23:59
@@ -41,10 +49,35 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(23, 59, 0, 0);
     setValue('due_date', tomorrow.toISOString().slice(0, 16));
+
+    // Carregar disciplinas
+    subjectService.getSubjects()
+      .then(setSubjects)
+      .catch(err => console.error('Erro ao carregar disciplinas:', err));
   }, [setValue]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const onSubmit = async (data: TaskFormData) => {
     try {
+      // Criar a disciplina se não existir
+      const existing = subjects.find(s => s.name.toLowerCase() === data.subject.toLowerCase());
+      if (!existing) {
+        try {
+          await subjectService.createSubject({ name: data.subject.trim() });
+        } catch (err) {
+          console.log('Disciplina não criada ou já existia.');
+        }
+      }
+
       const taskData: CreateTaskRequest = {
         ...data,
         due_date: new Date(data.due_date).toISOString(),
@@ -63,19 +96,24 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     }
   };
 
+  const filteredSubjects = subjects.filter(s =>
+    s.name.toLowerCase().includes(subjectValue.toLowerCase())
+  );
+
   return (
-    <div 
+    <div
       className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4 z-50 overflow-y-auto"
       onClick={handleOverlayClick}
       aria-modal="true"
       role="dialog"
     >
-      <div 
+      <div
         className="bg-white rounded-xl shadow-2xl max-w-lg w-full"
       >
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-bold text-gray-900">Nova Tarefa</h2>
           <button
+            type="button"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 p-1 transition duration-150 rounded-full hover:bg-gray-100"
           >
@@ -115,16 +153,54 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             {/* Disciplina */}
-            <div>
+            <div ref={dropdownRef} className="relative">
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Disciplina *
               </label>
-              <input
-                {...register('subject')}
-                type="text" 
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Ex: Cálculo I, História, etc."
-              />
+              <div className="relative">
+                <input
+                  {...register('subject')}
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
+                  placeholder="Ex: Física, Cálculo..."
+                  autoComplete="off"
+                  onFocus={() => setShowDropdown(true)}
+                  onClick={() => setShowDropdown(true)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </button>
+              </div>
+
+              {showDropdown && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {filteredSubjects.length > 0 ? (
+                    <ul className="py-1">
+                      {filteredSubjects.map(s => (
+                        <li
+                          key={s.id}
+                          className="px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer"
+                          onClick={() => {
+                            setValue('subject', s.name, { shouldValidate: true });
+                            setShowDropdown(false);
+                          }}
+                        >
+                          {s.name}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      Nenhuma encontrada. Pressione <span className="font-semibold text-blue-600">Salvar</span> para criar <b>"{subjectValue}"</b>.
+                    </div>
+                  )}
+                </div>
+              )}
+
               {errors.subject && (
                 <p className="mt-1 text-xs text-red-600">{errors.subject.message}</p>
               )}
