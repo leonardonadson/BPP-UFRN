@@ -6,6 +6,7 @@ import { EditTaskModal } from './EditTaskModal';
 import { UserStats } from './UserStats';
 import { SubjectsManager } from './SubjectsManager';
 import { DeleteConfirmationModal } from '@/components/dashboard/DeleteConfirmationModal';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import type { Task } from '@/types/task';
 import type { User, UserBadge } from '@/types/user';
 import { taskService } from '@/services/taskService';
@@ -89,32 +90,33 @@ export const Dashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-gray-700">Carregando...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="text-lg text-gray-700 dark:text-gray-300">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">StudyStreak</h1>
-              <p className="text-sm text-gray-600">Olá, {user?.email}!</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">StudyStreak</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Olá, {user?.email}!</p>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition duration-150"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 dark:shadow-neon dark:hover:shadow-neon-hover transition-all duration-300"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Tarefa
               </button>
               <button
                 onClick={logout}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition duration-150"
+                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sair

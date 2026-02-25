@@ -1,20 +1,65 @@
 /* src/index.css */
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
 
 /* Variáveis CSS customizadas para o projeto StudyStreak */
 @theme {
   --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
   --color-primary-500: #3b82f6;
   --color-primary-600: #2563eb;
   --color-primary-700: #1d4ed8;
-  
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
   --color-success-50: #f0fdf4;
   --color-success-500: #22c55e;
   --color-success-600: #16a34a;
-  
+
   --color-warning-50: #fefce8;
   --color-warning-500: #eab308;
   --color-warning-600: #ca8a04;
+
+  --shadow-neon: 0 0 15px rgba(181, 43, 250, 0.5);
+  --shadow-neon-hover: 0 0 25px rgba(181, 43, 250, 0.8);
+}
+
+/* Modo Noturno: Estética Geek (Minimalista, Preto Arroxeado + Neon Púrpura) */
+.dark {
+  /* Substitui a paleta Gray por um tom profundo de roxo (Midnight Purple) */
+  --color-gray-950: #05010b;
+  --color-gray-900: #0a0412;
+  /* Fundo principal da aplicação */
+  --color-gray-800: #11081f;
+  /* Fundo de cards/modais */
+  --color-gray-700: #1e1136;
+  /* Bordas e linhas */
+  --color-gray-600: #321e54;
+  --color-gray-500: #4f3380;
+  --color-gray-400: #8874ae;
+  /* Texto secundário */
+  --color-gray-300: #bab0d1;
+  --color-gray-200: #ddd7eb;
+  --color-gray-100: #f1eef7;
+  --color-gray-50: #f8f6fb;
+
+  /* Cores de Acentos em Neon Púrpura */
+  --color-primary-50: #fae8ff;
+  --color-primary-100: #f5d0ff;
+  --color-primary-200: #eea6ff;
+  --color-primary-300: #e473ff;
+  --color-primary-400: #d87bff;
+  --color-primary-500: #b52bfa;
+  /* Cor pura Neon Púrpura */
+  --color-primary-600: #9e14e6;
+  --color-primary-700: #7c00bd;
+  --color-primary-800: #610094;
+  --color-primary-900: #420066;
+  --color-primary-950: #2a0042;
 }
 
 /* Estilos base para a aplicação */
@@ -22,13 +67,11 @@ body {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: light;
-  color: rgba(0, 0, 0, 0.87);
-  background-color: #ffffff;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  @apply text-gray-900 bg-white dark:text-gray-100 dark:bg-gray-900 transition-colors;
 }
 
 /* Componentes customizados */
@@ -36,25 +79,25 @@ body {
   .btn-primary {
     @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
   }
-  
+
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-md border border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500;
+    @apply bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-md border border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700;
   }
-  
+
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 dark:bg-gray-800 dark:border-gray-700 transition-colors;
   }
-  
+
   .input-field {
     @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors;
   }
-  
+
   .form-label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300;
   }
-  
+
   .form-error {
-    @apply text-sm text-red-600 mt-1;
+    @apply text-sm text-red-600 mt-1 dark:text-red-400;
   }
 }
 
@@ -63,12 +106,12 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }

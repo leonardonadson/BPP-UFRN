@@ -112,18 +112,18 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 
     return (
         <div
-            className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4 z-50 overflow-y-auto"
+            className="fixed inset-0 backdrop-blur-sm bg-black/30 dark:bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto"
             onClick={handleOverlayClick}
             aria-modal="true"
             role="dialog"
         >
-            <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
-                <div className="flex items-center justify-between p-6 border-b">
-                    <h2 className="text-xl font-bold text-gray-900">Editar Tarefa</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full transition-colors">
+                <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Editar Tarefa</h2>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 p-1 transition duration-150 rounded-full hover:bg-gray-100"
+                        className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 p-1 transition duration-150 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                         <X className="w-6 h-6" />
                     </button>
@@ -132,29 +132,29 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
                     {/* Título */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                             Título *
                         </label>
                         <input
                             {...register('title')}
                             type="text"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                             placeholder="Ex: Estudar para prova de Matemática"
                         />
                         {errors.title && (
-                            <p className="mt-1 text-xs text-red-600">{errors.title.message}</p>
+                            <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.title.message}</p>
                         )}
                     </div>
 
                     {/* Descrição */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                             Descrição
                         </label>
                         <textarea
                             {...register('description')}
                             rows={3}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none transition-colors"
                             placeholder="Detalhes adicionais sobre a tarefa..."
                         />
                     </div>
@@ -162,14 +162,14 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                     <div className="grid grid-cols-2 gap-4">
                         {/* Disciplina */}
                         <div ref={dropdownRef} className="relative">
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Disciplina *
                             </label>
                             <div className="relative">
                                 <input
                                     {...register('subject')}
                                     type="text"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 pr-10 transition-colors"
                                     placeholder="Ex: Cálculo I, História, etc."
                                     autoComplete="off"
                                     onFocus={() => setShowDropdown(true)}
@@ -178,20 +178,20 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => setShowDropdown(!showDropdown)}
-                                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
+                                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                                 >
                                     <ChevronDown className="w-5 h-5" />
                                 </button>
                             </div>
 
                             {showDropdown && (
-                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto transition-colors">
                                     {filteredSubjects.length > 0 ? (
                                         <ul className="py-1">
                                             {filteredSubjects.map(s => (
                                                 <li
                                                     key={s.id}
-                                                    className="px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer"
+                                                    className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-gray-700 cursor-pointer"
                                                     onClick={() => {
                                                         setValue('subject', s.name, { shouldValidate: true });
                                                         setShowDropdown(false);
@@ -202,20 +202,20 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                                             ))}
                                         </ul>
                                     ) : (
-                                        <div className="px-4 py-3 text-sm text-gray-500">
-                                            Nenhuma encontrada. Pressione <span className="font-semibold text-blue-600">Salvar</span> para criar <b>"{subjectValue}"</b>.
+                                        <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                                            Nenhuma encontrada. Pressione <span className="font-semibold text-primary-600 dark:text-primary-400">Salvar</span> para criar <b>"{subjectValue}"</b>.
                                         </div>
                                     )}
                                 </div>
                             )}
 
                             {errors.subject && (
-                                <p className="mt-1 text-xs text-red-600">{errors.subject.message}</p>
+                                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.subject.message}</p>
                             )}
                         </div>
                         {/* Peso */}
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                 Peso (1-10) *
                             </label>
                             <input
@@ -223,42 +223,43 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                                 type="number"
                                 min="1"
                                 max="10"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                             />
                             {errors.weight && (
-                                <p className="mt-1 text-xs text-red-600">{errors.weight.message}</p>
+                                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.weight.message}</p>
                             )}
                         </div>
                     </div>
 
                     {/* Data e Hora */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                             Data e Hora de Entrega *
                         </label>
                         <input
                             {...register('due_date')}
                             type="datetime-local"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors style-color-scheme"
+                            style={{ colorScheme: 'inherit' }}
                         />
                         {errors.due_date && (
-                            <p className="mt-1 text-xs text-red-600">{errors.due_date.message}</p>
+                            <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.due_date.message}</p>
                         )}
                     </div>
 
                     {/* Botões */}
-                    <div className="flex justify-end space-x-3 pt-4 border-t mt-6">
+                    <div className="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700 mt-6 transition-colors">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-150"
+                            className="px-6 py-2 text-sm font-bold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-6 py-2 text-sm font-bold text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 disabled:opacity-50 transition duration-150 shadow-md"
+                            className="px-6 py-2 text-sm font-bold text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 disabled:opacity-50 dark:shadow-neon dark:hover:shadow-neon-hover transition-all duration-300 shadow-md"
                         >
                             {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
                         </button>

@@ -64,10 +64,10 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ onSubjectsChan
     };
 
     return (
-        <div className="bg-white rounded-lg shadow p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-5 transition-colors">
             <div className="flex items-center space-x-2 mb-4">
-                <BookOpen className="w-5 h-5 text-blue-600" />
-                <h3 className="text-base font-semibold text-gray-900">Disciplinas</h3>
+                <BookOpen className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Disciplinas</h3>
             </div>
 
             {/* Formulário para adicionar */}
@@ -77,13 +77,13 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ onSubjectsChan
                     value={newSubjectName}
                     onChange={(e) => setNewSubjectName(e.target.value)}
                     placeholder="Nova disciplina..."
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                     disabled={isAdding}
                 />
                 <button
                     type="submit"
                     disabled={isAdding || !newSubjectName.trim()}
-                    className="p-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition duration-150"
+                    className="p-2 text-white bg-primary-600 rounded-lg hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 disabled:opacity-50 transition duration-150"
                 >
                     {isAdding ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -94,16 +94,16 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ onSubjectsChan
             </form>
 
             {error && (
-                <p className="text-xs text-red-600 mb-3">{error}</p>
+                <p className="text-xs text-red-600 dark:text-red-400 mb-3">{error}</p>
             )}
 
             {/* Lista de disciplinas */}
             {isLoading ? (
                 <div className="text-center py-4">
-                    <Loader2 className="w-5 h-5 animate-spin text-gray-400 mx-auto" />
+                    <Loader2 className="w-5 h-5 animate-spin text-gray-400 dark:text-gray-500 mx-auto" />
                 </div>
             ) : subjects.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
                     Nenhuma disciplina cadastrada
                 </p>
             ) : (
@@ -111,15 +111,15 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ onSubjectsChan
                     {subjects.map((subject) => (
                         <li
                             key={subject.id}
-                            className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg group hover:bg-gray-100 transition-colors"
+                            className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         >
-                            <span className="text-sm font-medium text-gray-700 truncate">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
                                 {subject.name}
                             </span>
                             <button
                                 onClick={() => handleDeleteSubject(subject.id)}
                                 disabled={deletingId === subject.id}
-                                className="p-1 text-gray-400 hover:text-red-500 transition-colors rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100"
+                                className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded-full hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover:opacity-100 focus:opacity-100"
                             >
                                 {deletingId === subject.id ? (
                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
