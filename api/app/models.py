@@ -19,6 +19,7 @@ class User(Base):
 
     tasks = relationship("Task", back_populates="owner")
     badges = relationship("UserBadge", back_populates="user")
+    subjects = relationship("Subject", back_populates="owner")
 
 
 class Task(Base):
@@ -62,3 +63,14 @@ class UserBadge(Base):
 
     user = relationship("User", back_populates="badges")
     badge = relationship("Badge", back_populates="user_badges")
+
+
+class Subject(Base):
+    __tablename__ = "subjects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    created_at = Column(DateTime, default=func.now())  # pylint: disable=not-callable
+
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="subjects")

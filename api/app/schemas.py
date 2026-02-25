@@ -182,3 +182,69 @@ class MessageResponse(BaseModel):
 class ErrorResponse(BaseModel):
     detail: str
     error: bool = True
+
+
+class SubjectBase(BaseModel):
+    name: str
+
+    @validator('name')
+    def name_validator(cls, v):
+        if len(v.strip()) < 2:
+            raise ValueError('O nome da disciplina deve ter pelo menos 2 caracteres')
+        if len(v) > 100:
+            raise ValueError('O nome da disciplina não pode ter mais de 100 caracteres')
+        return v.strip()
+
+
+class SubjectCreate(SubjectBase):
+    pass
+
+
+class Subject(SubjectBase):
+    id: int
+    created_at: datetime
+    owner_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    subject: Optional[str] = None
+    weight: Optional[int] = None
+    due_date: Optional[datetime] = None
+
+    @validator('title')
+    def title_validator(cls, v):
+        if v is not None:
+            if len(v.strip()) < 3:
+                raise ValueError('O título deve ter pelo menos 3 caracteres')
+            if len(v) > 200:
+                raise ValueError('O título não pode ter mais de 200 caracteres')
+            return v.strip()
+        return v
+
+    @validator('subject')
+    def subject_validator(cls, v):
+        if v is not None:
+            if len(v.strip()) < 2:
+                raise ValueError('A disciplina deve ter pelo menos 2 caracteres')
+            if len(v) > 100:
+                raise ValueError('A disciplina não pode ter mais de 100 caracteres')
+            return v.strip()
+        return v
+
+    @validator('weight')
+    def weight_validator(cls, v):
+        if v is not None:
+            if v < 1 or v > 10:
+                raise ValueError('O peso deve estar entre 1 e 10')
+        return v
+
+    @validator('description')
+    def description_validator(cls, v):
+        if v and len(v) > 1000:
+            raise ValueError('A descrição não pode ter mais de 1000 caracteres')
+        return v.strip() if v else v
