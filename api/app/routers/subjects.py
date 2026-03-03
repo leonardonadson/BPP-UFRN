@@ -7,9 +7,48 @@ from app.auth.auth_bearer import get_current_user
 from app.database import get_db
 from app.models import Subject as SubjectModel
 from app.models import User
-from app.schemas import Subject, SubjectCreate
+from app.schemas import Subject, SubjectCreate, SubjectUpdate
 
 router = APIRouter(prefix="/subjects", tags=["Subjects"])
+
+
+@router.put("/{subject_id}", response_model=Subject)
+def update_subject(
+    subject_id: int,
+    subject_data: SubjectUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Atualiza o nome de uma disciplina do usuário."""
+    subject = db.query(SubjectModel).filter(
+        SubjectModel.id == subject_id,
+        SubjectModel.owner_id == current_user.id
+    ).first()
+
+    if not subject:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Disciplina não encontrada"
+        )
+
+    # Verifica se já existe outra disciplina com este nome para este usuário (ignorando a própria)
+    if subject_data.name and subject_data.name != subject.name:
+        existing = db.query(SubjectModel).filter(
+            SubjectModel.owner_id == current_user.id,
+            SubjectModel.name == subject_data.name
+        ).first()
+
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Disciplina com este nome já existe"
+            )
+        
+        subject.name = subject_data.name
+        db.commit()
+        db.refresh(subject)
+        
+    return subject
 
 
 @router.post("/", response_model=Subject, status_code=status.HTTP_201_CREATED)
