@@ -30,6 +30,30 @@ class UserCreate(UserBase):
         return v
 
 
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+
+    @validator('password')
+    def password_length_validator(cls, v):
+        if v is not None:
+            if len(v.encode('utf-8')) > 72:
+                raise ValueError('A senha não pode ter mais de 72 bytes')
+            if len(v) < 6:
+                raise ValueError('A senha deve ter pelo menos 6 caracteres')
+        return v
+
+    @validator('username')
+    def username_validator(cls, v):
+        if v is not None:
+            if len(v) < 3:
+                raise ValueError('O nome de usuário deve ter pelo menos 3 caracteres')
+            if len(v) > 50:
+                raise ValueError('O nome de usuário não pode ter mais de 50 caracteres')
+        return v
+
+
 class User(UserBase):
     id: int
     total_points: int
@@ -197,6 +221,10 @@ class SubjectBase(BaseModel):
 
 
 class SubjectCreate(SubjectBase):
+    pass
+
+
+class SubjectUpdate(SubjectBase):
     pass
 
 
