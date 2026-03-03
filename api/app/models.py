@@ -17,9 +17,9 @@ class User(Base):
     last_activity_date = Column(DateTime, default=func.now())  # pylint: disable=not-callable
     created_at = Column(DateTime, default=func.now())  # pylint: disable=not-callable
 
-    tasks = relationship("Task", back_populates="owner")
-    badges = relationship("UserBadge", back_populates="user")
-    subjects = relationship("Subject", back_populates="owner")
+    tasks = relationship("Task", back_populates="owner", cascade="all, delete-orphan")
+    badges = relationship("UserBadge", back_populates="user", cascade="all, delete-orphan")
+    subjects = relationship("Subject", back_populates="owner", cascade="all, delete-orphan")
 
 
 class Task(Base):
